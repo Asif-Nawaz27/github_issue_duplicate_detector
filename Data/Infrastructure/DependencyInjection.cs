@@ -1,5 +1,7 @@
+using IssueSense.Application.Persistence;
 using IssueSense.Infrastructure.GitHub;
 using IssueSense.Infrastructure.Persistence;
+using IssueSense.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -33,6 +35,10 @@ public static class DependencyInjection
 
         services.AddSingleton(dataSource);
         services.AddDbContext<IssueSenseDbContext>(options => options.UseNpgsql(dataSource, npgsql => npgsql.UseVector()));
+
+        services.AddScoped<IRepositoryRepository, RepositoryRepository>();
+        services.AddScoped<IIssueRepository, IssueRepository>();
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         return services;
     }
