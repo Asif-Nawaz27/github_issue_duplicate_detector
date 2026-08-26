@@ -1,0 +1,7 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Data\Domain\IssueSense.Domain.csproj" />
+  </ItemGroup>
+
+</Project>

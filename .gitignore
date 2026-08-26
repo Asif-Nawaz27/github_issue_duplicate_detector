@@ -1,0 +1,26 @@
+## .NET
+bin/
+obj/
+*.user
+*.suo
+
+## Visual Studio / Rider / VS Code
+.vs/
+.vscode/
+.idea/
+*.DotSettings.user
+
+## Build results
+[Dd]ebug/
+[Rr]elease/
+artifacts/
+
+## Test results
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+
+## Environment / secrets
+.env
+*.env.local

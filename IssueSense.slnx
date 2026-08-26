@@ -1,0 +1,23 @@
+<Solution>
+  <Folder Name="/App/">
+    <Project Path="App/Application/IssueSense.Application.csproj" />
+    <Project Path="App/Api/IssueSense.Api.csproj" />
+  </Folder>
+  <Folder Name="/Data/">
+    <Project Path="Data/Domain/IssueSense.Domain.csproj" />
+    <Project Path="Data/Infrastructure/IssueSense.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/Tests/" />
+  <Folder Name="/Tests/Application.Tests/">
+    <Project Path="Tests/Application.Tests/IssueSense.Application.Tests.csproj" />
+  </Folder>
+  <Folder Name="/Tests/Domain.Tests/">
+    <Project Path="Tests/Domain.Tests/IssueSense.Domain.Tests.csproj" />
+  </Folder>
+  <Folder Name="/Tests/Infrastructure.Tests/">
+    <Project Path="Tests/Infrastructure.Tests/IssueSense.Infrastructure.Tests.csproj" />
+  </Folder>
+  <Folder Name="/Tests/WebApi.Tests/">
+    <Project Path="Tests/WebApi.Tests/IssueSense.WebApi.Tests.csproj" />
+  </Folder>
+</Solution>

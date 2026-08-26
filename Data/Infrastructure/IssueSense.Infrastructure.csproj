@@ -1,0 +1,7 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\App\Application\IssueSense.Application.csproj" />
+  </ItemGroup>
+
+</Project>
