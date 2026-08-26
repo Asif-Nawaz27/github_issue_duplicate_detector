@@ -12,6 +12,12 @@ public abstract class Entity : IEquatable<Entity>
         Id = id;
     }
 
+    // Used by EF Core to materialize entities from the database; Id and every other
+    // property are populated via reflection immediately after construction.
+    protected Entity()
+    {
+    }
+
     public bool Equals(Entity? other) =>
         other is not null && (ReferenceEquals(this, other) || (GetType() == other.GetType() && Id == other.Id));
 

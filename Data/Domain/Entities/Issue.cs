@@ -91,6 +91,12 @@ public sealed class Issue : Entity
             labels ?? []);
     }
 
+#pragma warning disable CS8618 // Required by EF Core for materialization; properties are set via reflection.
+    private Issue()
+    {
+    }
+#pragma warning restore CS8618
+
     public void UpdateContent(string title, string? body, DateTimeOffset updatedAt)
     {
         ValidateTitle(title);

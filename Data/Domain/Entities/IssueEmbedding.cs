@@ -32,4 +32,10 @@ public sealed class IssueEmbedding : Entity
 
         return new IssueEmbedding(Guid.NewGuid(), issueId, vector, modelName.Trim(), createdAt);
     }
+
+#pragma warning disable CS8618 // Required by EF Core for materialization; properties are set via reflection.
+    private IssueEmbedding()
+    {
+    }
+#pragma warning restore CS8618
 }

@@ -33,4 +33,10 @@ public sealed class DuplicateCandidate : Entity
 
         return new DuplicateCandidate(Guid.NewGuid(), newIssueId, existingIssueId, score, detectedAt);
     }
+
+    // Required by EF Core for materialization; properties are set via reflection.
+    // No CS8618 suppression needed here: every property is a value type with a valid default.
+    private DuplicateCandidate()
+    {
+    }
 }

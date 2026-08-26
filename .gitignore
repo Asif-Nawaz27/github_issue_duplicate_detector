@@ -24,3 +24,5 @@ TestResults/
 ## Environment / secrets
 .env
 *.env.local
+/App/Api/appsettings.Development.json
+/docker-compose.yml

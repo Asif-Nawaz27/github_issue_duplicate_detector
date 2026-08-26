@@ -38,6 +38,12 @@ public sealed class Repository : Entity
         return new Repository(Guid.NewGuid(), gitHubRepositoryId, owner.Trim(), name.Trim(), createdAt);
     }
 
+#pragma warning disable CS8618 // Required by EF Core for materialization; properties are set via reflection.
+    private Repository()
+    {
+    }
+#pragma warning restore CS8618
+
     public void Activate() => IsActive = true;
 
     public void Deactivate() => IsActive = false;
