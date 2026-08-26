@@ -26,3 +26,4 @@ TestResults/
 *.env.local
 /App/Api/appsettings.Development.json
 /docker-compose.yml
+/App/Api/appsettings.json

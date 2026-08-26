@@ -1,0 +1,127 @@
+using System.Net;
+using System.Net.Http.Json;
+using System.Runtime.CompilerServices;
+using System.Text.Json;
+using IssueSense.Application.GitHub;
+using IssueSense.Application.GitHub.Models;
+using IssueSense.Domain.Enums;
+using IssueSense.Infrastructure.GitHub.Dtos;
+
+namespace IssueSense.Infrastructure.GitHub;
+
+internal sealed class GitHubService(HttpClient httpClient) : IGitHubService
+{
+    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+
+    public async Task<GitHubRepositoryInfo> GetRepositoryAsync(string owner, string name, CancellationToken cancellationToken = default)
+    {
+        var requestUri = $"repos/{Uri.EscapeDataString(owner)}/{Uri.EscapeDataString(name)}";
+        using var response = await httpClient.GetAsync(requestUri, cancellationToken);
+        await EnsureSuccessOrThrowAsync(response, $"Repository '{owner}/{name}'");
+
+        var dto = await response.Content.ReadFromJsonAsync<GitHubRepositoryDto>(JsonOptions, cancellationToken)
+            ?? throw new InvalidOperationException("GitHub returned an empty repository response.");
+
+        return MapRepository(dto);
+    }
+
+    public async IAsyncEnumerable<GitHubIssueInfo> GetIssuesAsync(
+        string owner,
+        string name,
+        GitHubIssueStateFilter state = GitHubIssueStateFilter.All,
+        [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        var stateValue = state.ToString().ToLowerInvariant();
+        string? requestUri = $"repos/{Uri.EscapeDataString(owner)}/{Uri.EscapeDataString(name)}/issues?state={stateValue}&per_page=100";
+
+        while (requestUri is not null)
+        {
+            using var response = await httpClient.GetAsync(requestUri, cancellationToken);
+            await EnsureSuccessOrThrowAsync(response, $"Issues for '{owner}/{name}'");
+
+            var dtos = await response.Content.ReadFromJsonAsync<List<GitHubIssueDto>>(JsonOptions, cancellationToken) ?? [];
+
+            foreach (var dto in dtos)
+            {
+                // GitHub's issues endpoint also returns pull requests; skip those.
+                if (dto.PullRequest is not null)
+                    continue;
+
+                yield return MapIssue(dto);
+            }
+
+            requestUri = GetNextPageUrl(response);
+        }
+    }
+
+    public async Task<GitHubIssueInfo> GetIssueAsync(string owner, string name, int issueNumber, CancellationToken cancellationToken = default)
+    {
+        var requestUri = $"repos/{Uri.EscapeDataString(owner)}/{Uri.EscapeDataString(name)}/issues/{issueNumber}";
+        using var response = await httpClient.GetAsync(requestUri, cancellationToken);
+        await EnsureSuccessOrThrowAsync(response, $"Issue #{issueNumber} in '{owner}/{name}'");
+
+        var dto = await response.Content.ReadFromJsonAsync<GitHubIssueDto>(JsonOptions, cancellationToken)
+            ?? throw new InvalidOperationException("GitHub returned an empty issue response.");
+
+        return MapIssue(dto);
+    }
+
+    public async Task<IReadOnlyList<GitHubLabel>> GetIssueLabelsAsync(string owner, string name, int issueNumber, CancellationToken cancellationToken = default)
+    {
+        var requestUri = $"repos/{Uri.EscapeDataString(owner)}/{Uri.EscapeDataString(name)}/issues/{issueNumber}/labels";
+        using var response = await httpClient.GetAsync(requestUri, cancellationToken);
+        await EnsureSuccessOrThrowAsync(response, $"Labels for issue #{issueNumber} in '{owner}/{name}'");
+
+        var dtos = await response.Content.ReadFromJsonAsync<List<GitHubLabelDto>>(JsonOptions, cancellationToken) ?? [];
+
+        return dtos.Select(dto => new GitHubLabel(dto.Name, dto.Color)).ToList();
+    }
+
+    private static async Task EnsureSuccessOrThrowAsync(HttpResponseMessage response, string resourceDescription)
+    {
+        if (response.IsSuccessStatusCode)
+            return;
+
+        if (response.StatusCode == HttpStatusCode.NotFound)
+            throw new GitHubNotFoundException($"{resourceDescription} was not found on GitHub.");
+
+        response.EnsureSuccessStatusCode();
+    }
+
+    private static string? GetNextPageUrl(HttpResponseMessage response)
+    {
+        if (!response.Headers.TryGetValues("Link", out var values))
+            return null;
+
+        var linkHeader = values.FirstOrDefault();
+        if (string.IsNullOrEmpty(linkHeader))
+            return null;
+
+        foreach (var link in linkHeader.Split(','))
+        {
+            var segments = link.Split(';', StringSplitOptions.TrimEntries);
+            if (segments.Length < 2 || segments[1] != "rel=\"next\"")
+                continue;
+
+            return segments[0].Trim('<', '>');
+        }
+
+        return null;
+    }
+
+    private static GitHubRepositoryInfo MapRepository(GitHubRepositoryDto dto) =>
+        new(dto.Id, dto.Owner.Login, dto.Name, dto.HtmlUrl);
+
+    private static GitHubIssueInfo MapIssue(GitHubIssueDto dto) =>
+        new(
+            dto.Id,
+            dto.Number,
+            dto.Title,
+            dto.Body,
+            dto.State.Equals("closed", StringComparison.OrdinalIgnoreCase) ? IssueState.Closed : IssueState.Open,
+            dto.HtmlUrl,
+            dto.CreatedAt,
+            dto.UpdatedAt,
+            dto.ClosedAt,
+            dto.Labels.Select(label => label.Name).ToList());
+}
