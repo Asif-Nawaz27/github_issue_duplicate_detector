@@ -40,6 +40,7 @@ public static class DependencyInjection
 
         services.AddScoped<IRepositoryRepository, RepositoryRepository>();
         services.AddScoped<IIssueRepository, IssueRepository>();
+        services.AddScoped<IIssueEmbeddingRepository, IssueEmbeddingRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         return services;

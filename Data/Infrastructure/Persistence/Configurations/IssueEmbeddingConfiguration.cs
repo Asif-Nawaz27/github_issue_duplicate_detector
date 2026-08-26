@@ -8,9 +8,10 @@ namespace IssueSense.Infrastructure.Persistence.Configurations;
 
 internal sealed class IssueEmbeddingConfiguration : IEntityTypeConfiguration<IssueEmbedding>
 {
-    // OpenAI text-embedding-3-small and text-embedding-ada-002 both produce 1536-dimensional
-    // vectors. Switching to a model with a different dimension requires a new migration.
-    public const int EmbeddingDimensions = 1536;
+    // Matches the output size of the currently configured embedding model (all-MiniLM-L6-v2,
+    // see LocalEmbeddingOptions.Dimensions). Switching to a model with a different output size
+    // requires updating this constant and adding a new migration to alter the column.
+    public const int EmbeddingDimensions = 384;
 
     public void Configure(EntityTypeBuilder<IssueEmbedding> builder)
     {

@@ -13,12 +13,18 @@ public sealed class FakeEmbeddingService(int dimensions = 8, string modelName = 
 {
     public List<(string Title, string? Body)> Requests { get; } = [];
 
+    /// <summary>Titles that should simulate a provider failure, for testing failure handling.</summary>
+    public HashSet<string> TitlesToFail { get; } = [];
+
     public Task<EmbeddingResult> GenerateEmbeddingAsync(string title, string? body, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(title))
             throw new ArgumentException("Title is required to generate an embedding.", nameof(title));
 
         Requests.Add((title, body));
+
+        if (TitlesToFail.Contains(title))
+            throw new InvalidOperationException($"Simulated embedding provider failure for '{title}'.");
 
         var text = string.IsNullOrWhiteSpace(body) ? title : $"{title}\n\n{body}";
         var vector = HashToVector(text, dimensions);

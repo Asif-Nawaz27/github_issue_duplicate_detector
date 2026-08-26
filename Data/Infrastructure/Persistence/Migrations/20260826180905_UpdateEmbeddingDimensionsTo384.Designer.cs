@@ -3,6 +3,7 @@ using System;
 using IssueSense.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Pgvector;
@@ -12,9 +13,11 @@ using Pgvector;
 namespace IssueSense.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(IssueSenseDbContext))]
-    partial class IssueSenseDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260826180905_UpdateEmbeddingDimensionsTo384")]
+    partial class UpdateEmbeddingDimensionsTo384
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
