@@ -1,4 +1,5 @@
 using IssueSense.Application.Persistence;
+using IssueSense.Infrastructure.Embeddings;
 using IssueSense.Infrastructure.GitHub;
 using IssueSense.Infrastructure.Persistence;
 using IssueSense.Infrastructure.Persistence.Repositories;
@@ -15,6 +16,7 @@ public static class DependencyInjection
     {
         services.AddPersistence(configuration);
         services.AddGitHubClient(configuration);
+        services.AddEmbeddings(configuration);
 
         return services;
     }
