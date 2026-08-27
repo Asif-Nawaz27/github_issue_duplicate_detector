@@ -46,3 +46,6 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+// Makes the implicit Program class accessible to WebApplicationFactory<Program> in test assemblies.
+public partial class Program;
