@@ -1,5 +1,8 @@
 using System.Net.Http.Headers;
+using IssueSense.Application.DuplicateDetection;
 using IssueSense.Application.GitHub;
+using IssueSense.Application.Webhooks;
+using IssueSense.Infrastructure.GitHub.Webhooks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -16,6 +19,10 @@ public static class GitHubServiceCollectionExtensions
                 options => !string.IsNullOrWhiteSpace(options.AccessToken),
                 "GitHub access token is not configured. Set GitHub:AccessToken via user-secrets, or the " +
                 "GitHub__AccessToken environment variable.")
+            .Validate(
+                options => !string.IsNullOrWhiteSpace(options.WebhookSecret),
+                "GitHub webhook secret is not configured. Set GitHub:WebhookSecret via user-secrets, or the " +
+                "GitHub__WebhookSecret environment variable.")
             .ValidateOnStart();
 
         services.AddTransient<GitHubRateLimitDelegatingHandler>();
@@ -31,6 +38,10 @@ public static class GitHubServiceCollectionExtensions
             })
             .AddHttpMessageHandler<GitHubRateLimitDelegatingHandler>()
             .AddStandardResilienceHandler();
+
+        services.AddSingleton<IGitHubWebhookSignatureVerifier, GitHubWebhookSignatureVerifier>();
+        services.AddSingleton<IGitHubWebhookParser, GitHubWebhookPayloadParser>();
+        services.AddScoped<IDuplicateNotifier, LoggingDuplicateNotifier>();
 
         return services;
     }

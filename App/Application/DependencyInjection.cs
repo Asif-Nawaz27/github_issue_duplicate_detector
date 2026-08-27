@@ -1,6 +1,7 @@
 using IssueSense.Application.DuplicateDetection;
 using IssueSense.Application.Embeddings;
 using IssueSense.Application.Import;
+using IssueSense.Application.Webhooks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -13,6 +14,7 @@ public static class DependencyInjection
         services.AddScoped<IIssueImportService, IssueImportService>();
         services.AddScoped<IEmbeddingGenerationService, EmbeddingGenerationService>();
         services.AddScoped<IDuplicateDetectionService, DuplicateDetectionService>();
+        services.AddScoped<IGitHubIssueWebhookHandler, GitHubIssueWebhookHandler>();
 
         services.AddOptions<DuplicateDetectionOptions>()
             .Bind(configuration.GetSection(DuplicateDetectionOptions.SectionName));

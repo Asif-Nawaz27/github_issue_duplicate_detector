@@ -4,7 +4,6 @@ using System.Runtime.CompilerServices;
 using System.Text.Json;
 using IssueSense.Application.GitHub;
 using IssueSense.Application.GitHub.Models;
-using IssueSense.Domain.Enums;
 using IssueSense.Infrastructure.GitHub.Dtos;
 
 namespace IssueSense.Infrastructure.GitHub;
@@ -22,7 +21,7 @@ internal sealed class GitHubService(HttpClient httpClient) : IGitHubService
         var dto = await response.Content.ReadFromJsonAsync<GitHubRepositoryDto>(JsonOptions, cancellationToken)
             ?? throw new InvalidOperationException("GitHub returned an empty repository response.");
 
-        return MapRepository(dto);
+        return GitHubMapper.ToRepositoryInfo(dto);
     }
 
     public async IAsyncEnumerable<GitHubIssueInfo> GetIssuesAsync(
@@ -47,7 +46,7 @@ internal sealed class GitHubService(HttpClient httpClient) : IGitHubService
                 if (dto.PullRequest is not null)
                     continue;
 
-                yield return MapIssue(dto);
+                yield return GitHubMapper.ToIssueInfo(dto);
             }
 
             requestUri = GetNextPageUrl(response);
@@ -63,7 +62,7 @@ internal sealed class GitHubService(HttpClient httpClient) : IGitHubService
         var dto = await response.Content.ReadFromJsonAsync<GitHubIssueDto>(JsonOptions, cancellationToken)
             ?? throw new InvalidOperationException("GitHub returned an empty issue response.");
 
-        return MapIssue(dto);
+        return GitHubMapper.ToIssueInfo(dto);
     }
 
     public async Task<IReadOnlyList<GitHubLabel>> GetIssueLabelsAsync(string owner, string name, int issueNumber, CancellationToken cancellationToken = default)
@@ -108,20 +107,4 @@ internal sealed class GitHubService(HttpClient httpClient) : IGitHubService
 
         return null;
     }
-
-    private static GitHubRepositoryInfo MapRepository(GitHubRepositoryDto dto) =>
-        new(dto.Id, dto.Owner.Login, dto.Name, dto.HtmlUrl);
-
-    private static GitHubIssueInfo MapIssue(GitHubIssueDto dto) =>
-        new(
-            dto.Id,
-            dto.Number,
-            dto.Title,
-            dto.Body,
-            dto.State.Equals("closed", StringComparison.OrdinalIgnoreCase) ? IssueState.Closed : IssueState.Open,
-            dto.HtmlUrl,
-            dto.CreatedAt,
-            dto.UpdatedAt,
-            dto.ClosedAt,
-            dto.Labels.Select(label => label.Name).ToList());
 }
