@@ -1,15 +1,21 @@
+using IssueSense.Application.DuplicateDetection;
 using IssueSense.Application.Embeddings;
 using IssueSense.Application.Import;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace IssueSense.Application;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddApplication(this IServiceCollection services)
+    public static IServiceCollection AddApplication(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddScoped<IIssueImportService, IssueImportService>();
         services.AddScoped<IEmbeddingGenerationService, EmbeddingGenerationService>();
+        services.AddScoped<IDuplicateDetectionService, DuplicateDetectionService>();
+
+        services.AddOptions<DuplicateDetectionOptions>()
+            .Bind(configuration.GetSection(DuplicateDetectionOptions.SectionName));
 
         return services;
     }
