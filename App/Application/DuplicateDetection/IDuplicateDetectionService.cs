@@ -9,9 +9,21 @@ namespace IssueSense.Application.DuplicateDetection;
 /// </summary>
 public interface IDuplicateDetectionService
 {
-    Task<IReadOnlyList<DuplicateCandidateMatch>> FindDuplicatesAsync(
+    Task<DuplicateDetectionResult> FindDuplicatesAsync(
         string owner,
         string name,
         GitHubIssueInfo newIssue,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Same check for an issue that doesn't have a GitHub identity yet — e.g. a title/body a
+    /// caller is drafting before actually opening it. There's nothing to exclude by identity,
+    /// since it can't already be stored.
+    /// </summary>
+    Task<DuplicateDetectionResult> FindDuplicatesAsync(
+        string owner,
+        string name,
+        string title,
+        string? body,
         CancellationToken cancellationToken = default);
 }

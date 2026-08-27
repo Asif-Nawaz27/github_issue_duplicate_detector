@@ -1,7 +1,9 @@
+using IssueSense.Api;
 using IssueSense.Application;
 using IssueSense.Infrastructure;
 using IssueSense.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,7 +15,12 @@ builder.Services.AddOpenApi();
 builder.Services.AddApplication(builder.Configuration);
 builder.Services.AddInfrastructure(builder.Configuration);
 
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
+
 var app = builder.Build();
+
+app.UseExceptionHandler();
 
 // Applying migrations on startup is a local-dev convenience so `dotnet run` against a
 // fresh docker-compose Postgres just works; a real deployment would run migrations
@@ -29,6 +36,7 @@ if (app.Environment.IsDevelopment())
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.MapScalarApiReference();
 }
 
 app.UseHttpsRedirection();
