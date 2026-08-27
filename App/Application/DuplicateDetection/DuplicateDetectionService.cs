@@ -12,11 +12,28 @@ public sealed class DuplicateDetectionService(
     IIssueEmbeddingRepository issueEmbeddingRepository,
     IOptions<DuplicateDetectionOptions> options) : IDuplicateDetectionService
 {
-    public async Task<IReadOnlyList<DuplicateCandidateMatch>> FindDuplicatesAsync(
+    public Task<DuplicateDetectionResult> FindDuplicatesAsync(
         string owner,
         string name,
         GitHubIssueInfo newIssue,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default) =>
+        FindDuplicatesCoreAsync(owner, name, newIssue.Title, newIssue.Body, newIssue.Id, cancellationToken);
+
+    public Task<DuplicateDetectionResult> FindDuplicatesAsync(
+        string owner,
+        string name,
+        string title,
+        string? body,
+        CancellationToken cancellationToken = default) =>
+        FindDuplicatesCoreAsync(owner, name, title, body, excludeGitHubIssueId: null, cancellationToken);
+
+    private async Task<DuplicateDetectionResult> FindDuplicatesCoreAsync(
+        string owner,
+        string name,
+        string title,
+        string? body,
+        long? excludeGitHubIssueId,
+        CancellationToken cancellationToken)
     {
         var repository = await repositoryRepository.GetByOwnerAndNameAsync(owner, name, cancellationToken)
             ?? throw new RepositoryNotFoundException($"Repository '{owner}/{name}' has not been imported yet.");
@@ -24,9 +41,11 @@ public sealed class DuplicateDetectionService(
         // If the issue being checked is already stored (and possibly already embedded), exclude
         // it from its own results; a brand new issue that hasn't been imported yet has nothing
         // to exclude.
-        var existingIssue = await issueRepository.GetByRepositoryIdAndGitHubIssueIdAsync(repository.Id, newIssue.Id, cancellationToken);
+        var existingIssue = excludeGitHubIssueId.HasValue
+            ? await issueRepository.GetByRepositoryIdAndGitHubIssueIdAsync(repository.Id, excludeGitHubIssueId.Value, cancellationToken)
+            : null;
 
-        var embeddingResult = await embeddingService.GenerateEmbeddingAsync(newIssue.Title, newIssue.Body, cancellationToken);
+        var embeddingResult = await embeddingService.GenerateEmbeddingAsync(title, body, cancellationToken);
 
         var settings = options.Value;
         var matches = await issueEmbeddingRepository.FindSimilarAsync(
@@ -37,7 +56,9 @@ public sealed class DuplicateDetectionService(
             existingIssue?.Id,
             cancellationToken);
 
-        return matches.Select(match => ToCandidateMatch(match, repository.FullName, settings)).ToList();
+        var candidates = matches.Select(match => ToCandidateMatch(match, repository.FullName, settings)).ToList();
+
+        return new DuplicateDetectionResult(candidates, embeddingResult.ModelName, settings.MinimumSimilarityThreshold);
     }
 
     private static DuplicateCandidateMatch ToCandidateMatch(SimilarIssueMatch match, string repositoryFullName, DuplicateDetectionOptions settings) =>

@@ -81,7 +81,7 @@ public sealed class DuplicateDetectionServiceIntegrationTests(PostgresContainerF
         await SeedIssueWithEmbeddingAsync(dbContext, repository.Id, 1, CreateVector(1f, 0f), title: "App crashes when starting up");
         var sut = CreateSut(dbContext, CreateVector(1f, 0f));
 
-        var results = await sut.FindDuplicatesAsync("octocat", repoName, NewIssue());
+        var results = (await sut.FindDuplicatesAsync("octocat", repoName, NewIssue())).Candidates;
 
         var match = Assert.Single(results);
         Assert.Equal(1, match.IssueNumber);
@@ -97,7 +97,7 @@ public sealed class DuplicateDetectionServiceIntegrationTests(PostgresContainerF
         await SeedIssueWithEmbeddingAsync(dbContext, repository.Id, 1, CreateVector(0f, 1f), title: "Add dark mode support");
         var sut = CreateSut(dbContext, CreateVector(1f, 0f));
 
-        var results = await sut.FindDuplicatesAsync("octocat", repoName, NewIssue());
+        var results = (await sut.FindDuplicatesAsync("octocat", repoName, NewIssue())).Candidates;
 
         Assert.Empty(results);
     }
@@ -110,7 +110,7 @@ public sealed class DuplicateDetectionServiceIntegrationTests(PostgresContainerF
         await SeedIssueWithEmbeddingAsync(dbContext, repository.Id, 1, CreateVector(0.8f, 0.6f), title: "App fails to launch sometimes");
         var sut = CreateSut(dbContext, CreateVector(1f, 0f));
 
-        var results = await sut.FindDuplicatesAsync("octocat", repoName, NewIssue());
+        var results = (await sut.FindDuplicatesAsync("octocat", repoName, NewIssue())).Candidates;
 
         var match = Assert.Single(results);
         Assert.Equal(0.8, match.SimilarityScore, precision: 3);
@@ -125,7 +125,7 @@ public sealed class DuplicateDetectionServiceIntegrationTests(PostgresContainerF
         await SeedIssueWithEmbeddingAsync(dbContext, repository.Id, 1, CreateVector(1f, 0f));
         var sut = CreateSut(dbContext, CreateVector(1f, 0f));
 
-        var results = await sut.FindDuplicatesAsync("octocat", repoName, NewIssue(body: null));
+        var results = (await sut.FindDuplicatesAsync("octocat", repoName, NewIssue(body: null))).Candidates;
 
         Assert.Single(results);
     }
@@ -138,7 +138,7 @@ public sealed class DuplicateDetectionServiceIntegrationTests(PostgresContainerF
         await SeedIssueWithEmbeddingAsync(dbContext, repository.Id, 1, CreateVector(1f, 0f), title: "Crash");
         var sut = CreateSut(dbContext, CreateVector(1f, 0f));
 
-        var results = await sut.FindDuplicatesAsync("octocat", repoName, NewIssue(title: "Bug", body: null));
+        var results = (await sut.FindDuplicatesAsync("octocat", repoName, NewIssue(title: "Bug", body: null))).Candidates;
 
         Assert.Single(results);
     }
@@ -152,7 +152,7 @@ public sealed class DuplicateDetectionServiceIntegrationTests(PostgresContainerF
         var self = await SeedIssueWithEmbeddingAsync(dbContext, repository.Id, 999, vector, title: "The issue being checked");
         var sut = CreateSut(dbContext, vector);
 
-        var results = await sut.FindDuplicatesAsync("octocat", repoName, NewIssue(id: self.GitHubIssueId));
+        var results = (await sut.FindDuplicatesAsync("octocat", repoName, NewIssue(id: self.GitHubIssueId))).Candidates;
 
         Assert.Empty(results);
     }
@@ -167,7 +167,7 @@ public sealed class DuplicateDetectionServiceIntegrationTests(PostgresContainerF
         await SeedIssueWithEmbeddingAsync(dbContext, repository.Id, 3, CreateVector(0.8f, 0.6f), title: "Quite similar");
         var sut = CreateSut(dbContext, CreateVector(1f, 0f), new DuplicateDetectionOptions { TopN = 2, MinimumSimilarityThreshold = 0.0 });
 
-        var results = await sut.FindDuplicatesAsync("octocat", repoName, NewIssue());
+        var results = (await sut.FindDuplicatesAsync("octocat", repoName, NewIssue())).Candidates;
 
         Assert.Equal(2, results.Count);
         Assert.Equal(2, results[0].IssueNumber);
@@ -188,7 +188,7 @@ public sealed class DuplicateDetectionServiceIntegrationTests(PostgresContainerF
         await SeedIssueWithEmbeddingAsync(dbContext, repository.Id, 3, CreateVector(1f, 0f));
         var sut = CreateSut(dbContext, CreateVector(1f, 0f), new DuplicateDetectionOptions { TopN = 10, MinimumSimilarityThreshold = threshold });
 
-        var results = await sut.FindDuplicatesAsync("octocat", repoName, NewIssue());
+        var results = (await sut.FindDuplicatesAsync("octocat", repoName, NewIssue())).Candidates;
 
         Assert.Equal(expectedCount, results.Count);
     }

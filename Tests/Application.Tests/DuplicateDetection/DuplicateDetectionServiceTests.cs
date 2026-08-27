@@ -75,7 +75,7 @@ public class DuplicateDetectionServiceTests
         AddIssueWithEmbedding(repository.Id, 1, EmbeddingVector.Create([1f, 0f]), title: "App crashes when starting up");
         var sut = CreateSut(EmbeddingVector.Create([1f, 0f]));
 
-        var results = await sut.FindDuplicatesAsync("octocat", "hello-world", NewIssue());
+        var results = (await sut.FindDuplicatesAsync("octocat", "hello-world", NewIssue())).Candidates;
 
         var match = Assert.Single(results);
         Assert.Equal(1, match.IssueNumber);
@@ -92,7 +92,7 @@ public class DuplicateDetectionServiceTests
         AddIssueWithEmbedding(repository.Id, 1, EmbeddingVector.Create([0f, 1f]), title: "Add dark mode support");
         var sut = CreateSut(EmbeddingVector.Create([1f, 0f]));
 
-        var results = await sut.FindDuplicatesAsync("octocat", "hello-world", NewIssue());
+        var results = (await sut.FindDuplicatesAsync("octocat", "hello-world", NewIssue())).Candidates;
 
         Assert.Empty(results);
     }
@@ -105,7 +105,7 @@ public class DuplicateDetectionServiceTests
         AddIssueWithEmbedding(repository.Id, 1, EmbeddingVector.Create([0.8f, 0.6f]), title: "App fails to launch sometimes");
         var sut = CreateSut(EmbeddingVector.Create([1f, 0f]));
 
-        var results = await sut.FindDuplicatesAsync("octocat", "hello-world", NewIssue());
+        var results = (await sut.FindDuplicatesAsync("octocat", "hello-world", NewIssue())).Candidates;
 
         var match = Assert.Single(results);
         Assert.Equal(0.8, match.SimilarityScore, precision: 6);
@@ -119,7 +119,7 @@ public class DuplicateDetectionServiceTests
         AddIssueWithEmbedding(repository.Id, 1, EmbeddingVector.Create([1f, 0f]));
         var sut = CreateSut(EmbeddingVector.Create([1f, 0f]));
 
-        var results = await sut.FindDuplicatesAsync("octocat", "hello-world", NewIssue(body: null));
+        var results = (await sut.FindDuplicatesAsync("octocat", "hello-world", NewIssue(body: null))).Candidates;
 
         Assert.Single(results);
     }
@@ -131,7 +131,7 @@ public class DuplicateDetectionServiceTests
         AddIssueWithEmbedding(repository.Id, 1, EmbeddingVector.Create([1f, 0f]), title: "Crash");
         var sut = CreateSut(EmbeddingVector.Create([1f, 0f]));
 
-        var results = await sut.FindDuplicatesAsync("octocat", "hello-world", NewIssue(title: "Bug", body: null));
+        var results = (await sut.FindDuplicatesAsync("octocat", "hello-world", NewIssue(title: "Bug", body: null))).Candidates;
 
         Assert.Single(results);
     }
@@ -146,7 +146,7 @@ public class DuplicateDetectionServiceTests
         var newIssue = NewIssue(id: self.GitHubIssueId);
         var sut = CreateSut(selfVector);
 
-        var results = await sut.FindDuplicatesAsync("octocat", "hello-world", newIssue);
+        var results = (await sut.FindDuplicatesAsync("octocat", "hello-world", newIssue)).Candidates;
 
         Assert.Empty(results);
     }
@@ -160,7 +160,7 @@ public class DuplicateDetectionServiceTests
         AddIssueWithEmbedding(repository.Id, 3, EmbeddingVector.Create([0.8f, 0.6f]), title: "Quite similar");      // similarity 0.8
         var sut = CreateSut(EmbeddingVector.Create([1f, 0f]), new DuplicateDetectionOptions { TopN = 2, MinimumSimilarityThreshold = 0.0 });
 
-        var results = await sut.FindDuplicatesAsync("octocat", "hello-world", NewIssue());
+        var results = (await sut.FindDuplicatesAsync("octocat", "hello-world", NewIssue())).Candidates;
 
         Assert.Equal(2, results.Count);
         Assert.Equal(2, results[0].IssueNumber); // similarity 1.0, highest
@@ -180,7 +180,7 @@ public class DuplicateDetectionServiceTests
         AddIssueWithEmbedding(repository.Id, 3, EmbeddingVector.Create([1f, 0f]));     // similarity 1.0
         var sut = CreateSut(EmbeddingVector.Create([1f, 0f]), new DuplicateDetectionOptions { TopN = 10, MinimumSimilarityThreshold = threshold });
 
-        var results = await sut.FindDuplicatesAsync("octocat", "hello-world", NewIssue());
+        var results = (await sut.FindDuplicatesAsync("octocat", "hello-world", NewIssue())).Candidates;
 
         Assert.Equal(expectedCount, results.Count);
     }
@@ -193,11 +193,44 @@ public class DuplicateDetectionServiceTests
         issue.Close(BaseTime.AddDays(1));
         var sut = CreateSut(EmbeddingVector.Create([1f, 0f]));
 
-        var results = await sut.FindDuplicatesAsync("octocat", "hello-world", NewIssue());
+        var results = (await sut.FindDuplicatesAsync("octocat", "hello-world", NewIssue())).Candidates;
 
         var match = Assert.Single(results);
         Assert.Equal("Exact title match", match.Title);
         Assert.Equal(issue.Url, match.Url);
         Assert.Equal(IssueState.Closed, match.State);
+    }
+
+    [Fact]
+    public async Task FindDuplicatesAsync_ReturnsEmbeddingModelAndThresholdUsed()
+    {
+        AddRepository();
+        var sut = CreateSut(EmbeddingVector.Create([1f, 0f]), new DuplicateDetectionOptions { MinimumSimilarityThreshold = 0.42 });
+
+        var result = await sut.FindDuplicatesAsync("octocat", "hello-world", NewIssue());
+
+        Assert.Equal("stub-model", result.EmbeddingModelUsed);
+        Assert.Equal(0.42, result.SimilarityThresholdUsed);
+    }
+
+    [Fact]
+    public async Task FindDuplicatesAsync_WithTitleAndBodyOnly_DoesNotExcludeAnyExistingIssue()
+    {
+        var repository = AddRepository();
+        AddIssueWithEmbedding(repository.Id, 1, EmbeddingVector.Create([1f, 0f]), title: "Identical text");
+        var sut = CreateSut(EmbeddingVector.Create([1f, 0f]));
+
+        var result = await sut.FindDuplicatesAsync("octocat", "hello-world", "App crashes on startup", "Steps to reproduce...");
+
+        Assert.Single(result.Candidates);
+    }
+
+    [Fact]
+    public async Task FindDuplicatesAsync_WithTitleAndBodyOnly_AndRepositoryNotImported_ThrowsRepositoryNotFoundException()
+    {
+        var sut = CreateSut(EmbeddingVector.Create([1f, 0f]));
+
+        await Assert.ThrowsAsync<RepositoryNotFoundException>(
+            () => sut.FindDuplicatesAsync("octocat", "hello-world", "title", "body"));
     }
 }
