@@ -22,8 +22,10 @@ TestResults/
 *.coveragexml
 
 ## Environment / secrets
+# appsettings.json holds only safe local defaults and is committed. Real credentials
+# (GitHub access token, webhook secret) belong in `dotnet user-secrets`, never in a
+# tracked file — see docs/DEVELOPMENT.md.
 .env
 *.env.local
 /App/Api/appsettings.Development.json
-/docker-compose.yml
-/App/Api/appsettings.json
+/App/Api/appsettings.*.local.json

@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/Asif-Nawaz27/github_issue_duplicate_detector/security/policy
+    about: Please report security vulnerabilities privately per SECURITY.md instead of opening a public issue.

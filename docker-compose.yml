@@ -1,0 +1,23 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg17
+    container_name: issuesense-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: IssueSense
+    ports:
+      # Host port 5433 avoids clashing with a locally installed PostgreSQL
+      # service that may already be bound to the default 5432.
+      - "5433:5432"
+    volumes:
+      - issuesense-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d IssueSense"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  issuesense-postgres-data:
