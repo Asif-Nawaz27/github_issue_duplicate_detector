@@ -20,4 +20,8 @@
   <Folder Name="/Tests/WebApi.Tests/">
     <Project Path="Tests/WebApi.Tests/IssueSense.WebApi.Tests.csproj" />
   </Folder>
+  <Folder Name="/Tools/" />
+  <Folder Name="/Tools/Evaluation/">
+    <Project Path="Tools/Evaluation/IssueSense.Evaluation.csproj" />
+  </Folder>
 </Solution>
