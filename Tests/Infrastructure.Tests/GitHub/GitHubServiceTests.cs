@@ -209,12 +209,68 @@ public class GitHubServiceTests
     }
 
     [Fact]
-    public async Task GetRepositoryAsync_WithForbiddenButNoRateLimitHeaders_ThrowsHttpRequestException()
+    public async Task GetRepositoryAsync_WithForbiddenButNoRateLimitHeaders_ThrowsGitHubForbiddenException()
     {
         var response = new HttpResponseMessage(HttpStatusCode.Forbidden);
 
         var (service, _) = CreateService(response);
 
-        await Assert.ThrowsAsync<HttpRequestException>(() => service.GetRepositoryAsync("o", "r"));
+        await Assert.ThrowsAsync<GitHubForbiddenException>(() => service.GetRepositoryAsync("o", "r"));
+    }
+
+    [Fact]
+    public async Task GetIssueCommentsAsync_WithSuccessResponse_MapsFields()
+    {
+        const string json = """
+            [
+                { "id": 1, "body": "First comment", "user": { "login": "octocat" } },
+                { "id": 2, "body": "Second comment", "user": { "login": "issuesense-bot" } }
+            ]
+            """;
+        var (service, _) = CreateService(JsonResponse(HttpStatusCode.OK, json));
+
+        var result = await service.GetIssueCommentsAsync("o", "r", 1);
+
+        Assert.Equal(2, result.Count);
+        Assert.Contains(result, c => c.Id == 1 && c.Body == "First comment" && c.AuthorLogin == "octocat");
+        Assert.Contains(result, c => c.Id == 2 && c.AuthorLogin == "issuesense-bot");
+    }
+
+    [Fact]
+    public async Task GetIssueCommentsAsync_WithNotFoundResponse_ThrowsGitHubNotFoundException()
+    {
+        var (service, _) = CreateService(new HttpResponseMessage(HttpStatusCode.NotFound));
+
+        await Assert.ThrowsAsync<GitHubNotFoundException>(() => service.GetIssueCommentsAsync("o", "r", 1));
+    }
+
+    [Fact]
+    public async Task PostIssueCommentAsync_WithSuccessResponse_ReturnsCreatedComment()
+    {
+        const string json = """{ "id": 42, "body": "posted body", "user": { "login": "issuesense-bot" } }""";
+        var (service, handler) = CreateService(JsonResponse(HttpStatusCode.Created, json));
+
+        var result = await service.PostIssueCommentAsync("o", "r", 1, "posted body");
+
+        Assert.Equal(42, result.Id);
+        Assert.Equal("posted body", result.Body);
+        Assert.Equal("POST", handler.Requests[0].Method.Method);
+        Assert.Equal("/repos/o/r/issues/1/comments", handler.Requests[0].RequestUri!.AbsolutePath);
+    }
+
+    [Fact]
+    public async Task PostIssueCommentAsync_WithForbiddenResponse_ThrowsGitHubForbiddenException()
+    {
+        var (service, _) = CreateService(new HttpResponseMessage(HttpStatusCode.Forbidden));
+
+        await Assert.ThrowsAsync<GitHubForbiddenException>(() => service.PostIssueCommentAsync("o", "r", 1, "body"));
+    }
+
+    [Fact]
+    public async Task PostIssueCommentAsync_WithServerError_ThrowsHttpRequestException()
+    {
+        var (service, _) = CreateService(new HttpResponseMessage(HttpStatusCode.InternalServerError));
+
+        await Assert.ThrowsAsync<HttpRequestException>(() => service.PostIssueCommentAsync("o", "r", 1, "body"));
     }
 }
