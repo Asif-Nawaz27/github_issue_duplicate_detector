@@ -1,0 +1,362 @@
+[
+  {
+    "id": "dup-01-crash-startup",
+    "newIssue": {
+      "title": "App crashes immediately after opening on Windows 11",
+      "body": "As soon as I launch the app it closes itself within a second. No error dialog appears. Happens every time on a fresh install."
+    },
+    "existingIssue": {
+      "title": "Application crashes on launch",
+      "body": "When I start the application it crashes right away, before the main window even shows up. Windows 11, reproduces consistently."
+    },
+    "expectedRelationship": "Duplicate"
+  },
+  {
+    "id": "dup-02-login-button",
+    "newIssue": {
+      "title": "Clicking the login button does nothing",
+      "body": "I enter my email and password and click Login, but nothing happens — no error, no redirect, no loading spinner."
+    },
+    "existingIssue": {
+      "title": "Login button unresponsive",
+      "body": "The login button doesn't seem to respond to clicks at all. Tried multiple browsers, same result. No feedback whatsoever."
+    },
+    "expectedRelationship": "Duplicate"
+  },
+  {
+    "id": "dup-03-dark-mode-not-saved",
+    "newIssue": {
+      "title": "Dark mode setting resets after restarting the app",
+      "body": "I switch to dark mode in settings, close the app, and when I reopen it's back to light mode again."
+    },
+    "existingIssue": {
+      "title": "Dark theme preference doesn't persist",
+      "body": "Every time I relaunch, my dark theme choice is gone and it defaults back to light. Have to re-enable it every session."
+    },
+    "expectedRelationship": "Duplicate"
+  },
+  {
+    "id": "dup-04-memory-leak-export",
+    "newIssue": {
+      "title": "Memory usage keeps climbing when exporting large CSV files",
+      "body": "Exporting a report with 100k+ rows causes memory usage to balloon to several GB and never comes back down."
+    },
+    "existingIssue": {
+      "title": "RAM usage grows enormously during large exports",
+      "body": "When exporting big datasets to CSV, the process's memory footprint grows way beyond what seems reasonable and isn't released afterward."
+    },
+    "expectedRelationship": "Duplicate"
+  },
+  {
+    "id": "dup-05-settings-freeze",
+    "newIssue": {
+      "title": "App freezes when opening the settings page",
+      "body": "Clicking on Settings in the sidebar hangs the whole application for 10-15 seconds before it becomes responsive again."
+    },
+    "existingIssue": {
+      "title": "Settings screen causes UI to hang",
+      "body": "Navigating to settings makes the app unresponsive for a while. Have to wait it out — clicking anything else doesn't help."
+    },
+    "expectedRelationship": "Duplicate"
+  },
+  {
+    "id": "dup-06-password-reset-404",
+    "newIssue": {
+      "title": "Password reset link leads to a 404 page",
+      "body": "I requested a password reset, clicked the link in the email, and got a 404 Not Found instead of the reset form."
+    },
+    "existingIssue": {
+      "title": "Reset password page returns 404",
+      "body": "The link sent for resetting my password takes me to a page that says 404. Can't reset my password at all."
+    },
+    "expectedRelationship": "Duplicate"
+  },
+  {
+    "id": "dup-07-search-no-results",
+    "newIssue": {
+      "title": "Search returns nothing even for exact matches",
+      "body": "Searching for a term I know exists (I can see it in the list manually) returns zero results in the search box."
+    },
+    "existingIssue": {
+      "title": "Search feature always shows empty results",
+      "body": "No matter what I type into search, even exact titles of items I know exist, the results list stays empty."
+    },
+    "expectedRelationship": "Duplicate"
+  },
+  {
+    "id": "dup-08-mobile-notifications",
+    "newIssue": {
+      "title": "Push notifications not appearing on iOS",
+      "body": "I have notifications enabled in settings, but I never receive any push notifications on my iPhone."
+    },
+    "existingIssue": {
+      "title": "No push notifications on mobile app",
+      "body": "Notifications are turned on, permissions are granted, but nothing ever shows up on my phone's lock screen."
+    },
+    "expectedRelationship": "Duplicate"
+  },
+  {
+    "id": "dup-09-upload-fails-large",
+    "newIssue": {
+      "title": "Uploading files larger than 10MB always fails",
+      "body": "Any file over roughly 10MB fails to upload with a generic 'upload failed' message. Smaller files work fine."
+    },
+    "existingIssue": {
+      "title": "Large file uploads (>10MB) error out",
+      "body": "Trying to upload anything above 10MB gives an error and the upload never completes. Files under that size are fine."
+    },
+    "expectedRelationship": "Duplicate"
+  },
+  {
+    "id": "dup-10-timezone-wrong",
+    "newIssue": {
+      "title": "Report timestamps are shown in the wrong timezone",
+      "body": "All the times in my exported reports are off by several hours — looks like it's not using my local timezone."
+    },
+    "existingIssue": {
+      "title": "Incorrect timezone in generated reports",
+      "body": "The dates/times in reports don't match my local time at all, consistently off by a fixed number of hours."
+    },
+    "expectedRelationship": "Duplicate"
+  },
+  {
+    "id": "rel-01-startup-vs-shutdown-crash",
+    "newIssue": {
+      "title": "App crashes when closing it, not on startup",
+      "body": "The app runs fine the whole session, but crashes with an error dialog every time I try to close it normally."
+    },
+    "existingIssue": {
+      "title": "Application crashes on launch",
+      "body": "When I start the application it crashes right away, before the main window even shows up. Windows 11, reproduces consistently."
+    },
+    "expectedRelationship": "Related"
+  },
+  {
+    "id": "rel-02-remember-me-vs-login-button",
+    "newIssue": {
+      "title": "'Remember me' checkbox is ignored on login",
+      "body": "I check 'Remember me' when logging in, but I'm still logged out every time I close and reopen the browser."
+    },
+    "existingIssue": {
+      "title": "Login button unresponsive",
+      "body": "The login button doesn't seem to respond to clicks at all. Tried multiple browsers, same result. No feedback whatsoever."
+    },
+    "expectedRelationship": "Related"
+  },
+  {
+    "id": "rel-03-dark-mode-contrast",
+    "newIssue": {
+      "title": "Dark mode has very low contrast on some text",
+      "body": "With dark mode enabled, several labels are dark grey on black and are almost impossible to read."
+    },
+    "existingIssue": {
+      "title": "Dark theme preference doesn't persist",
+      "body": "Every time I relaunch, my dark theme choice is gone and it defaults back to light. Have to re-enable it every session."
+    },
+    "expectedRelationship": "Related"
+  },
+  {
+    "id": "rel-04-export-slow-vs-leak",
+    "newIssue": {
+      "title": "Exporting large reports takes a very long time",
+      "body": "Exporting anything over a few thousand rows takes several minutes to complete, even though the data itself isn't that large."
+    },
+    "existingIssue": {
+      "title": "RAM usage grows enormously during large exports",
+      "body": "When exporting big datasets to CSV, the process's memory footprint grows way beyond what seems reasonable and isn't released afterward."
+    },
+    "expectedRelationship": "Related"
+  },
+  {
+    "id": "rel-05-settings-missing-save",
+    "newIssue": {
+      "title": "Settings page has no visible Save button",
+      "body": "I can change values on the settings page but there's no button to actually save them — unclear if changes are applied."
+    },
+    "existingIssue": {
+      "title": "Settings screen causes UI to hang",
+      "body": "Navigating to settings makes the app unresponsive for a while. Have to wait it out — clicking anything else doesn't help."
+    },
+    "expectedRelationship": "Related"
+  },
+  {
+    "id": "rel-06-reset-email-never-arrives",
+    "newIssue": {
+      "title": "Password reset email never arrives",
+      "body": "I request a password reset and never receive the email, even after waiting a while and checking spam."
+    },
+    "existingIssue": {
+      "title": "Reset password page returns 404",
+      "body": "The link sent for resetting my password takes me to a page that says 404. Can't reset my password at all."
+    },
+    "expectedRelationship": "Related"
+  },
+  {
+    "id": "rel-07-search-case-sensitive",
+    "newIssue": {
+      "title": "Search is case-sensitive and shouldn't be",
+      "body": "Searching 'Report' finds nothing but searching 'report' works. Search should probably ignore case."
+    },
+    "existingIssue": {
+      "title": "Search feature always shows empty results",
+      "body": "No matter what I type into search, even exact titles of items I know exist, the results list stays empty."
+    },
+    "expectedRelationship": "Related"
+  },
+  {
+    "id": "rel-08-desktop-duplicate-notifications",
+    "newIssue": {
+      "title": "Desktop notifications show up twice",
+      "body": "On the desktop app, every notification I get appears as two identical popups instead of one."
+    },
+    "existingIssue": {
+      "title": "No push notifications on mobile app",
+      "body": "Notifications are turned on, permissions are granted, but nothing ever shows up on my phone's lock screen."
+    },
+    "expectedRelationship": "Related"
+  },
+  {
+    "id": "rel-09-upload-progress-bar",
+    "newIssue": {
+      "title": "Upload progress bar doesn't move",
+      "body": "When uploading a file the progress bar stays at 0% the whole time even though the upload does eventually finish."
+    },
+    "existingIssue": {
+      "title": "Large file uploads (>10MB) error out",
+      "body": "Trying to upload anything above 10MB gives an error and the upload never completes. Files under that size are fine."
+    },
+    "expectedRelationship": "Related"
+  },
+  {
+    "id": "rel-10-date-format-inconsistent",
+    "newIssue": {
+      "title": "Date format is inconsistent across different pages",
+      "body": "The dashboard shows dates as MM/DD/YYYY but the reports page shows DD/MM/YYYY for the same data."
+    },
+    "existingIssue": {
+      "title": "Incorrect timezone in generated reports",
+      "body": "The dates/times in reports don't match my local time at all, consistently off by a fixed number of hours."
+    },
+    "expectedRelationship": "Related"
+  },
+  {
+    "id": "unrel-01-crash-vs-darkmode-request",
+    "newIssue": {
+      "title": "Please add a dark mode option",
+      "body": "It would be great to have a dark theme for use at night — the current bright white UI is hard on the eyes."
+    },
+    "existingIssue": {
+      "title": "Application crashes on launch",
+      "body": "When I start the application it crashes right away, before the main window even shows up. Windows 11, reproduces consistently."
+    },
+    "expectedRelationship": "Unrelated"
+  },
+  {
+    "id": "unrel-02-login-vs-csv-columns",
+    "newIssue": {
+      "title": "CSV export columns are in the wrong order",
+      "body": "When I export to CSV, the columns don't match the order they're displayed in on screen, which breaks my downstream scripts."
+    },
+    "existingIssue": {
+      "title": "Login button unresponsive",
+      "body": "The login button doesn't seem to respond to clicks at all. Tried multiple browsers, same result. No feedback whatsoever."
+    },
+    "expectedRelationship": "Unrelated"
+  },
+  {
+    "id": "unrel-03-search-vs-api-docs",
+    "newIssue": {
+      "title": "Request: document the API rate limits",
+      "body": "The public API docs don't mention what the rate limits are, which makes it hard to design a client that behaves well."
+    },
+    "existingIssue": {
+      "title": "Search feature always shows empty results",
+      "body": "No matter what I type into search, even exact titles of items I know exist, the results list stays empty."
+    },
+    "expectedRelationship": "Unrelated"
+  },
+  {
+    "id": "unrel-04-notifications-vs-readme-typo",
+    "newIssue": {
+      "title": "Typo in README installation section",
+      "body": "The README says 'instal' instead of 'install' in step 3 of the setup instructions."
+    },
+    "existingIssue": {
+      "title": "No push notifications on mobile app",
+      "body": "Notifications are turned on, permissions are granted, but nothing ever shows up on my phone's lock screen."
+    },
+    "expectedRelationship": "Unrelated"
+  },
+  {
+    "id": "unrel-05-upload-vs-keyboard-shortcuts",
+    "newIssue": {
+      "title": "Add keyboard shortcuts for common actions",
+      "body": "It would speed up my workflow a lot to have keyboard shortcuts for things like save, new item, and search."
+    },
+    "existingIssue": {
+      "title": "Large file uploads (>10MB) error out",
+      "body": "Trying to upload anything above 10MB gives an error and the upload never completes. Files under that size are fine."
+    },
+    "expectedRelationship": "Unrelated"
+  },
+  {
+    "id": "unrel-06-timezone-vs-french-localization",
+    "newIssue": {
+      "title": "Add French language support",
+      "body": "Our team is based in France and it would help a lot if the UI could be localized into French."
+    },
+    "existingIssue": {
+      "title": "Incorrect timezone in generated reports",
+      "body": "The dates/times in reports don't match my local time at all, consistently off by a fixed number of hours."
+    },
+    "expectedRelationship": "Unrelated"
+  },
+  {
+    "id": "unrel-07-reset-vs-dashboard-performance",
+    "newIssue": {
+      "title": "Dashboard charts are slow to render",
+      "body": "The main dashboard takes 5-10 seconds to fully render its charts, which feels sluggish compared to other pages."
+    },
+    "existingIssue": {
+      "title": "Reset password page returns 404",
+      "body": "The link sent for resetting my password takes me to a page that says 404. Can't reset my password at all."
+    },
+    "expectedRelationship": "Unrelated"
+  },
+  {
+    "id": "unrel-08-settings-vs-sso",
+    "newIssue": {
+      "title": "Support SSO login via our identity provider",
+      "body": "We'd like to be able to log in using our company's SSO/SAML provider instead of a separate username and password."
+    },
+    "existingIssue": {
+      "title": "Settings screen causes UI to hang",
+      "body": "Navigating to settings makes the app unresponsive for a while. Have to wait it out — clicking anything else doesn't help."
+    },
+    "expectedRelationship": "Unrelated"
+  },
+  {
+    "id": "unrel-09-memoryleak-vs-highcontrast-theme",
+    "newIssue": {
+      "title": "Add a high-contrast accessibility theme",
+      "body": "For accessibility, it would help to have a high-contrast theme option separate from the regular light/dark themes."
+    },
+    "existingIssue": {
+      "title": "RAM usage grows enormously during large exports",
+      "body": "When exporting big datasets to CSV, the process's memory footprint grows way beyond what seems reasonable and isn't released afterward."
+    },
+    "expectedRelationship": "Unrelated"
+  },
+  {
+    "id": "unrel-10-mobile-vs-invoice-pdf",
+    "newIssue": {
+      "title": "Invoice PDF is missing the tax field",
+      "body": "The generated billing invoice PDF doesn't show the tax amount anywhere, even though it's included in the total."
+    },
+    "existingIssue": {
+      "title": "No push notifications on mobile app",
+      "body": "Notifications are turned on, permissions are granted, but nothing ever shows up on my phone's lock screen."
+    },
+    "expectedRelationship": "Unrelated"
+  }
+]
