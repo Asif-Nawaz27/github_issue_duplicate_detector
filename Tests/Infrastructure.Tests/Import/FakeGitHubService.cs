@@ -33,4 +33,17 @@ internal sealed class FakeGitHubService : IGitHubService
     public Task<IReadOnlyList<GitHubLabel>> GetIssueLabelsAsync(string owner, string name, int issueNumber, CancellationToken cancellationToken = default) =>
         Task.FromResult<IReadOnlyList<GitHubLabel>>(
             Issues.Single(i => i.Number == issueNumber).Labels.Select(l => new GitHubLabel(l, "000000")).ToList());
+
+    public List<GitHubComment> Comments { get; } = [];
+
+    public Task<IReadOnlyList<GitHubComment>> GetIssueCommentsAsync(string owner, string name, int issueNumber, CancellationToken cancellationToken = default) =>
+        Task.FromResult<IReadOnlyList<GitHubComment>>(Comments);
+
+    public Task<GitHubComment> PostIssueCommentAsync(string owner, string name, int issueNumber, string body, CancellationToken cancellationToken = default)
+    {
+        var comment = new GitHubComment(Comments.Count + 1, body, "issuesense-bot");
+        Comments.Add(comment);
+
+        return Task.FromResult(comment);
+    }
 }

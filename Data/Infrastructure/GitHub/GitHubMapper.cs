@@ -22,4 +22,6 @@ internal static class GitHubMapper
             dto.UpdatedAt,
             dto.ClosedAt,
             dto.Labels.Select(label => label.Name).ToList());
+
+    public static GitHubComment ToComment(GitHubCommentDto dto) => new(dto.Id, dto.Body, dto.User?.Login);
 }

@@ -41,7 +41,10 @@ public static class GitHubServiceCollectionExtensions
 
         services.AddSingleton<IGitHubWebhookSignatureVerifier, GitHubWebhookSignatureVerifier>();
         services.AddSingleton<IGitHubWebhookParser, GitHubWebhookPayloadParser>();
-        services.AddScoped<IDuplicateNotifier, LoggingDuplicateNotifier>();
+        services.AddScoped<IDuplicateNotifier, GitHubCommentDuplicateNotifier>();
+
+        services.AddOptions<DuplicateCommentOptions>()
+            .Bind(configuration.GetSection(DuplicateCommentOptions.SectionName));
 
         return services;
     }

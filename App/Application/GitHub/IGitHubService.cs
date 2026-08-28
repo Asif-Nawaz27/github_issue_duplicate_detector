@@ -20,4 +20,9 @@ public interface IGitHubService
     Task<GitHubIssueInfo> GetIssueAsync(string owner, string name, int issueNumber, CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<GitHubLabel>> GetIssueLabelsAsync(string owner, string name, int issueNumber, CancellationToken cancellationToken = default);
+
+    /// <summary>The most recent comments on an issue (first page only — plenty for a newly-opened issue).</summary>
+    Task<IReadOnlyList<GitHubComment>> GetIssueCommentsAsync(string owner, string name, int issueNumber, CancellationToken cancellationToken = default);
+
+    Task<GitHubComment> PostIssueCommentAsync(string owner, string name, int issueNumber, string body, CancellationToken cancellationToken = default);
 }

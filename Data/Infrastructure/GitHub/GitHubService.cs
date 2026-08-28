@@ -76,6 +76,29 @@ internal sealed class GitHubService(HttpClient httpClient) : IGitHubService
         return dtos.Select(dto => new GitHubLabel(dto.Name, dto.Color)).ToList();
     }
 
+    public async Task<IReadOnlyList<GitHubComment>> GetIssueCommentsAsync(string owner, string name, int issueNumber, CancellationToken cancellationToken = default)
+    {
+        var requestUri = $"repos/{Uri.EscapeDataString(owner)}/{Uri.EscapeDataString(name)}/issues/{issueNumber}/comments?per_page=100";
+        using var response = await httpClient.GetAsync(requestUri, cancellationToken);
+        await EnsureSuccessOrThrowAsync(response, $"Comments for issue #{issueNumber} in '{owner}/{name}'");
+
+        var dtos = await response.Content.ReadFromJsonAsync<List<GitHubCommentDto>>(JsonOptions, cancellationToken) ?? [];
+
+        return dtos.Select(GitHubMapper.ToComment).ToList();
+    }
+
+    public async Task<GitHubComment> PostIssueCommentAsync(string owner, string name, int issueNumber, string body, CancellationToken cancellationToken = default)
+    {
+        var requestUri = $"repos/{Uri.EscapeDataString(owner)}/{Uri.EscapeDataString(name)}/issues/{issueNumber}/comments";
+        using var response = await httpClient.PostAsJsonAsync(requestUri, new { body }, JsonOptions, cancellationToken);
+        await EnsureSuccessOrThrowAsync(response, $"Posting comment on issue #{issueNumber} in '{owner}/{name}'");
+
+        var dto = await response.Content.ReadFromJsonAsync<GitHubCommentDto>(JsonOptions, cancellationToken)
+            ?? throw new InvalidOperationException("GitHub returned an empty comment response.");
+
+        return GitHubMapper.ToComment(dto);
+    }
+
     private static async Task EnsureSuccessOrThrowAsync(HttpResponseMessage response, string resourceDescription)
     {
         if (response.IsSuccessStatusCode)
@@ -83,6 +106,11 @@ internal sealed class GitHubService(HttpClient httpClient) : IGitHubService
 
         if (response.StatusCode == HttpStatusCode.NotFound)
             throw new GitHubNotFoundException($"{resourceDescription} was not found on GitHub.");
+
+        // The rate-limit handler already intercepts 403s caused by hitting a rate limit; a 403
+        // that reaches here is a genuine permission problem (e.g. token lacks issues:write).
+        if (response.StatusCode == HttpStatusCode.Forbidden)
+            throw new GitHubForbiddenException($"GitHub denied permission for: {resourceDescription}.");
 
         response.EnsureSuccessStatusCode();
     }
