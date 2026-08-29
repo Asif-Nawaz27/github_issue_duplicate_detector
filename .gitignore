@@ -30,3 +30,4 @@ TestResults/
 /App/Api/appsettings.Development.json
 /App/Api/appsettings.*.local.json
 /App/Api/appsettings.json
+/.claude
