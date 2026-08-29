@@ -106,6 +106,7 @@ similarity thresholds instead of a fixed top-1 match), see
 | Webhooks | HMAC-SHA256 signature verification (`X-Hub-Signature-256`) |
 | Tests | xUnit; unit tests with in-memory fakes, integration tests against a real PostgreSQL via Testcontainers |
 | Local dev | Docker Compose (Postgres + pgvector only — the API runs natively) |
+| Web dashboard | React 19 + TypeScript, Vite (optional — see [App/Web](App/Web/README.md)) |
 
 ## Running it locally
 
@@ -132,6 +133,16 @@ dotnet run --project App/Api
 
 The API listens on `http://localhost:5100` by default, with the Scalar
 OpenAPI UI at `http://localhost:5100/scalar/v1` in Development.
+
+Optionally, run the [web dashboard](App/Web/README.md) — a small React app
+for triggering import/embed/check-duplicate by hand and watching an
+activity feed as you go:
+
+```bash
+cd App/Web
+npm install
+npm run dev
+```
 
 ## Configuring GitHub integration
 

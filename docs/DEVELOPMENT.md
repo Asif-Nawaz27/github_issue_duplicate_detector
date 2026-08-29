@@ -94,6 +94,22 @@ curl -X POST http://localhost:5100/api/repositories/{owner}/{repo}/check-duplica
   -d '{"title":"App crashes on startup","body":"Crashes immediately after launch"}'
 ```
 
+## 6. (Optional) Run the web dashboard
+
+[App/Web](../App/Web/README.md) is a small React + TypeScript app for
+triggering the three API actions by hand and watching an activity feed. It's
+a plain Node project, not part of the .NET solution:
+
+```bash
+cd App/Web
+npm install
+npm run dev
+```
+
+Opens on `http://localhost:5173` (or the next free port) and proxies `/api/*`
+requests to the API on `http://localhost:5100` — no CORS setup needed. The
+API from step 5 must already be running.
+
 ## Running tests
 
 ```bash
