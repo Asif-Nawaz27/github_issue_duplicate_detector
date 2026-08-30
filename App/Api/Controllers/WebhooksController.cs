@@ -5,13 +5,11 @@ using Microsoft.Extensions.Primitives;
 
 namespace IssueSense.Api.Controllers;
 
-[ApiController]
-[Route("api/webhooks")]
 public sealed partial class WebhooksController(
     IGitHubWebhookSignatureVerifier signatureVerifier,
     IGitHubWebhookParser webhookParser,
     IGitHubIssueWebhookHandler webhookHandler,
-    ILogger<WebhooksController> logger) : ControllerBase
+    ILoggerFactory loggerFactory) : BaseController(loggerFactory)
 {
     private const string SignatureHeaderName = "X-Hub-Signature-256";
     private const string EventHeaderName = "X-GitHub-Event";
@@ -35,7 +33,7 @@ public sealed partial class WebhooksController(
         var signatureHeader = GetHeader(SignatureHeaderName);
         if (!signatureVerifier.IsValid(payload, signatureHeader))
         {
-            LogInvalidSignature();
+            LogInvalidSignature(Logger);
             return Unauthorized(new { error = "Invalid or missing webhook signature." });
         }
 
@@ -43,32 +41,32 @@ public sealed partial class WebhooksController(
 
         if (eventType == "ping")
         {
-            LogPingReceived();
+            LogPingReceived(Logger);
             return Ok(new { message = "pong" });
         }
 
         if (eventType != "issues")
         {
-            LogIgnoredEventType(eventType ?? "(missing)");
+            LogIgnoredEventType(Logger, eventType ?? "(missing)");
             return Ok(new { message = $"Event type '{eventType}' is not handled." });
         }
 
         if (!IsWellFormedJson(payload))
         {
-            LogMalformedPayload();
+            LogMalformedPayload(Logger);
             return BadRequest(new { error = "Payload is not valid JSON." });
         }
 
         var webhookEvent = webhookParser.ParseIssueEvent(payload);
         if (webhookEvent is null)
         {
-            LogUnparseablePayload();
+            LogUnparseablePayload(Logger);
             return Ok(new { message = "Payload ignored: not a usable issue event (e.g. a pull request, or missing data)." });
         }
 
         var result = await webhookHandler.HandleAsync(webhookEvent, cancellationToken);
 
-        LogWebhookHandled(webhookEvent.Repository.Owner, webhookEvent.Repository.Name, webhookEvent.Issue.Number, result.Processed, result.Reason);
+        LogWebhookHandled(Logger, webhookEvent.Repository.Owner, webhookEvent.Repository.Name, webhookEvent.Issue.Number, result.Processed, result.Reason);
 
         return Ok(new { processed = result.Processed, reason = result.Reason, duplicatesFound = result.DuplicatesFound });
     }
@@ -101,21 +99,21 @@ public sealed partial class WebhooksController(
     }
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "Rejected GitHub webhook delivery with an invalid or missing signature")]
-    private partial void LogInvalidSignature();
+    private static partial void LogInvalidSignature(ILogger logger);
 
     [LoggerMessage(Level = LogLevel.Debug, Message = "Received GitHub webhook ping")]
-    private partial void LogPingReceived();
+    private static partial void LogPingReceived(ILogger logger);
 
     [LoggerMessage(Level = LogLevel.Debug, Message = "Ignoring GitHub webhook event type '{EventType}'")]
-    private partial void LogIgnoredEventType(string eventType);
+    private static partial void LogIgnoredEventType(ILogger logger, string eventType);
 
     [LoggerMessage(Level = LogLevel.Debug, Message = "Ignoring GitHub webhook payload: not a usable issue event")]
-    private partial void LogUnparseablePayload();
+    private static partial void LogUnparseablePayload(ILogger logger);
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "Rejected GitHub webhook delivery: payload is not valid JSON")]
-    private partial void LogMalformedPayload();
+    private static partial void LogMalformedPayload(ILogger logger);
 
     [LoggerMessage(Level = LogLevel.Information,
         Message = "GitHub webhook for {Owner}/{Repository} issue #{IssueNumber}: processed={Processed}, reason={Reason}")]
-    private partial void LogWebhookHandled(string owner, string repository, int issueNumber, bool processed, string reason);
+    private static partial void LogWebhookHandled(ILogger logger, string owner, string repository, int issueNumber, bool processed, string reason);
 }
