@@ -7,11 +7,13 @@ export default defineConfig({
   server: {
     proxy: {
       // Forwards to the API started via `dotnet run --project App/Api` (see
-      // App/Api/Properties/launchSettings.json). Avoids needing CORS configured
-      // on the API for local development.
+      // App/Api/Properties/launchSettings.json), using its HTTPS URL directly.
+      // secure: false skips certificate validation against the ASP.NET Core
+      // dev cert, which Node doesn't trust by default.
       '/api': {
-        target: 'http://localhost:5100',
+        target: 'https://localhost:7094',
         changeOrigin: true,
+        secure: false,
       },
     },
   },

@@ -83,6 +83,12 @@ dotnet run --project App/Api
 - HTTP: `http://localhost:5100`
 - Scalar OpenAPI UI (Development only): `http://localhost:5100/scalar/v1`
 
+Cross-origin calls (e.g. from the [web dashboard](../App/Web/README.md)) are
+only allowed from origins listed in `Cors:AllowedOrigins` in
+`appsettings.json` — it already includes the Vite dev server's ports
+(`5173`/`5174`). An empty list means no cross-origin caller is allowed at
+all; add your frontend's origin there if it runs somewhere else.
+
 A quick end-to-end smoke test once it's running (replace with a real repo
 you have access to):
 
