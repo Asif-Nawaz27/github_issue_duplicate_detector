@@ -9,13 +9,12 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace IssueSense.Api.Controllers;
 
-[ApiController]
-[Route("api/repositories")]
+
 public sealed partial class RepositoriesController(
     IIssueImportService importService,
     IEmbeddingGenerationService embeddingGenerationService,
     IDuplicateDetectionService duplicateDetectionService,
-    ILogger<RepositoriesController> logger) : ControllerBase
+    ILoggerFactory loggerFactory) : BaseController(loggerFactory)
 {
     [HttpPost("{owner}/{repository}/import")]
     public async Task<ActionResult<IssueImportResult>> ImportIssues(
@@ -77,7 +76,7 @@ public sealed partial class RepositoriesController(
         [FromBody] CheckDuplicateRequest request,
         CancellationToken cancellationToken)
     {
-        LogCheckDuplicateStarted(owner, repository);
+        LogCheckDuplicateStarted(Logger, owner, repository);
 
         var stopwatch = Stopwatch.StartNew();
 
@@ -90,13 +89,13 @@ public sealed partial class RepositoriesController(
 
             var response = ToResponse(result, stopwatch.ElapsedMilliseconds);
 
-            LogCheckDuplicateCompleted(owner, repository, response.Candidates.Count, response.IsPotentialDuplicate);
+            LogCheckDuplicateCompleted(Logger, owner, repository, response.Candidates.Count, response.IsPotentialDuplicate);
 
             return Ok(response);
         }
         catch (RepositoryNotFoundException ex)
         {
-            LogRepositoryNotFound(owner, repository);
+            LogRepositoryNotFound(Logger, owner, repository);
             return NotFound(new { error = ex.Message });
         }
     }
@@ -118,12 +117,12 @@ public sealed partial class RepositoriesController(
     }
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Checking for duplicates in {Owner}/{Repository}")]
-    private partial void LogCheckDuplicateStarted(string owner, string repository);
+    private static partial void LogCheckDuplicateStarted(ILogger logger, string owner, string repository);
 
     [LoggerMessage(Level = LogLevel.Information,
         Message = "Duplicate check for {Owner}/{Repository} found {CandidateCount} candidate(s); IsPotentialDuplicate={IsPotentialDuplicate}")]
-    private partial void LogCheckDuplicateCompleted(string owner, string repository, int candidateCount, bool isPotentialDuplicate);
+    private static partial void LogCheckDuplicateCompleted(ILogger logger, string owner, string repository, int candidateCount, bool isPotentialDuplicate);
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "Duplicate check requested for unimported repository {Owner}/{Repository}")]
-    private partial void LogRepositoryNotFound(string owner, string repository);
+    private static partial void LogRepositoryNotFound(ILogger logger, string owner, string repository);
 }
