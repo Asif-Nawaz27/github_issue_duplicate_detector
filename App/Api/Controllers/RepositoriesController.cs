@@ -5,6 +5,7 @@ using IssueSense.Application.Embeddings;
 using IssueSense.Application.GitHub;
 using IssueSense.Application.Import;
 using IssueSense.Application.Persistence;
+using IssueSense.Application.Repositories;
 using Microsoft.AspNetCore.Mvc;
 
 namespace IssueSense.Api.Controllers;
@@ -14,8 +15,17 @@ public sealed partial class RepositoriesController(
     IIssueImportService importService,
     IEmbeddingGenerationService embeddingGenerationService,
     IDuplicateDetectionService duplicateDetectionService,
+    IRepositoryLookupService repositoryLookupService,
     ILoggerFactory loggerFactory) : BaseController(loggerFactory)
 {
+    /// <summary>Names of repositories already imported for the given owner, for autocomplete use.</summary>
+    [HttpGet("{owner}")]
+    public async Task<ActionResult<IReadOnlyList<string>>> GetByOwner(string owner, CancellationToken cancellationToken)
+    {
+        var repositories = await repositoryLookupService.GetByOwnerAsync(owner, cancellationToken);
+        return Ok(repositories.Select(r => r.Name).ToList());
+    }
+
     [HttpPost("{owner}/{repository}/import")]
     public async Task<ActionResult<IssueImportResult>> ImportIssues(
         string owner,
