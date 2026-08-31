@@ -1,12 +1,15 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import './App.css'
-import { ApiError, checkDuplicate, generateEmbeddings, importIssues } from './api'
+import { AddOwnerModal } from './AddOwnerModal'
+import { ApiError, checkDuplicate, generateEmbeddings, importIssues, listOwners, listRepositoriesByOwner } from './api'
+import { SearchableCombobox } from './SearchableCombobox'
 import type {
   ActionKind,
   ActivityEntry,
   CheckDuplicateResponse,
   EmbeddingGenerationResult,
   IssueImportResult,
+  Owner,
 } from './types'
 
 type AsyncState<T> =
@@ -49,6 +52,42 @@ function App() {
   const [checkState, setCheckState] = useState<AsyncState<CheckDuplicateResponse>>({ status: 'idle' })
 
   const [activity, setActivity] = useState<ActivityEntry[]>([])
+
+  const [owners, setOwners] = useState<Owner[]>([])
+  const [ownersError, setOwnersError] = useState('')
+  const [isAddOwnerOpen, setIsAddOwnerOpen] = useState(false)
+
+  const [repositoryNames, setRepositoryNames] = useState<string[]>([])
+  const [repositoriesError, setRepositoriesError] = useState('')
+
+  useEffect(() => {
+    listOwners()
+      .then(setOwners)
+      .catch((err) => setOwnersError(err instanceof ApiError ? err.message : 'Failed to load owners — is the API running?'))
+  }, [])
+
+  // Repository suggestions are scoped to the selected owner, so re-fetch (and drop any
+  // previously-selected repository, which likely belongs to a different owner) whenever it changes.
+  useEffect(() => {
+    setRepository('')
+    setRepositoriesError('')
+
+    if (!owner.trim()) {
+      setRepositoryNames([])
+      return
+    }
+
+    listRepositoriesByOwner(owner)
+      .then(setRepositoryNames)
+      .catch((err) => setRepositoriesError(err instanceof ApiError ? err.message : 'Failed to load repositories — is the API running?'))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [owner])
+
+  function handleOwnerCreated(newOwner: Owner) {
+    setOwners((prev) => [...prev, newOwner].sort((a, b) => a.name.localeCompare(b.name)))
+    setOwner(newOwner.name)
+    setIsAddOwnerOpen(false)
+  }
 
   const repoReady = owner.trim().length > 0 && repository.trim().length > 0
 
@@ -107,14 +146,35 @@ function App() {
         <div className="field-row">
           <label>
             Owner
-            <input value={owner} onChange={(e) => setOwner(e.target.value)} placeholder="e.g. octocat" />
+            <div className="owner-field">
+              <SearchableCombobox
+                items={owners.map((o) => o.name)}
+                value={owner}
+                onChange={setOwner}
+                placeholder="Search owners…"
+                emptyItemsMessage="No owners yet"
+              />
+              <button type="button" className="secondary" onClick={() => setIsAddOwnerOpen(true)}>
+                + Add owner
+              </button>
+            </div>
           </label>
           <label>
             Repository
-            <input value={repository} onChange={(e) => setRepository(e.target.value)} placeholder="e.g. hello-world" />
+            <SearchableCombobox
+              items={repositoryNames}
+              value={repository}
+              onChange={setRepository}
+              placeholder="e.g. hello-world"
+              emptyItemsMessage={owner.trim() ? 'No imported repositories yet — type a new one' : 'Choose an owner first'}
+              allowFreeText
+              disabled={!owner.trim()}
+            />
           </label>
         </div>
-        {!repoReady && <p className="hint">Enter an owner and repository to enable the actions below.</p>}
+        {ownersError && <p className="error">{ownersError}</p>}
+        {repositoriesError && <p className="error">{repositoriesError}</p>}
+        {!repoReady && <p className="hint">Choose an owner and enter a repository to enable the actions below.</p>}
       </section>
 
       <section className="actions-grid">
@@ -242,6 +302,8 @@ function App() {
           </ul>
         )}
       </section>
+
+      {isAddOwnerOpen && <AddOwnerModal onClose={() => setIsAddOwnerOpen(false)} onCreated={handleOwnerCreated} />}
     </div>
   )
 }

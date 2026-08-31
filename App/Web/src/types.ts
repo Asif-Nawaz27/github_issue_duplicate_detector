@@ -35,6 +35,13 @@ export interface CheckDuplicateResponse {
   processing: ProcessingInfoResponse
 }
 
+export interface Owner {
+  id: number
+  name: string
+  createdDate: string | null
+  changedDate: string | null
+}
+
 export type ActionKind = 'import' | 'generate-embeddings' | 'check-duplicate'
 
 export interface ActivityEntry {
