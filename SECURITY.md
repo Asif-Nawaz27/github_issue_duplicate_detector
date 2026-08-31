@@ -2,52 +2,57 @@
 
 ## Supported versions
 
-IssueSense doesn't have tagged releases yet — it's developed on `main`.
-Security fixes are applied to `main`; there's no older version being
-maintained in parallel.
+There aren't tagged releases yet — everything happens on `main`, and
+security fixes go there too. No older version to worry about maintaining in
+parallel, at least for now.
 
-## Reporting a vulnerability
+## Found a vulnerability? Here's what to do.
 
-**Please do not open a public GitHub issue for security vulnerabilities.**
+**Please don't open a public GitHub issue for it.** That's the one case
+where we'd genuinely rather you email us first.
 
-Instead, report it privately by emailing **asif.nawaz8787@gmail.com** with:
+Send the details to **asif.nawaz8787@gmail.com**:
 
-- A description of the vulnerability and its potential impact
-- Steps to reproduce it, if possible
-- Any relevant logs, requests, or code pointers
+- What the vulnerability is and what it could let someone do
+- Steps to reproduce it, if you can put them together
+- Any logs, requests, or code pointers that'd help us find it faster
 
-You should get an acknowledgment within a few days. There's no formal SLA
-(this is a single-maintainer project at this stage), but security reports
-are prioritized over other work.
+You should hear back within a few days. This is a single-maintainer project
+right now, so there's no formal SLA, but security reports jump the queue
+ahead of everything else.
 
-If the report is confirmed, a fix will be prepared and a note added to the
-release/commit that fixes it. Public disclosure of the vulnerability
-details will be coordinated with you rather than published unilaterally.
+If it checks out, we'll fix it and note it in the commit/release that does.
+We'll coordinate with you on when and how the details go public — you
+won't see us disclose it unilaterally before you've had a chance to weigh
+in.
 
-## Scope and known-sensitive areas
+## Where to look, if you're the kind of person who looks
 
-Things particularly worth a careful look if you're reviewing this project
-for security issues:
+A few spots worth extra scrutiny if you're auditing this project:
 
-- **`POST /api/webhooks/github`** — the only unauthenticated public
-  endpoint by design (GitHub can't send a bearer token). It relies entirely
-  on HMAC-SHA256 signature verification (`X-Hub-Signature-256`) against
-  `GitHub:WebhookSecret`, computed over the raw request body using a
-  constant-time comparison. If you find a way to bypass or weaken that
-  check, that's a high-priority report.
-- **Credential handling** — `GitHub:AccessToken` and `GitHub:WebhookSecret`
-  are meant to live in `dotnet user-secrets` or environment variables, never
-  in a committed file. If you spot a code path that logs, echoes, or
-  otherwise leaks either value, please report it.
-- **The rest of the API currently has no authentication** — this is a known,
-  documented limitation (see the README), not something to separately
-  report, but exploits that go beyond "an unauthenticated caller can call
-  this endpoint" (e.g. injection, path traversal, SSRF) are in scope.
+- **`POST /api/webhooks/github`** — the one endpoint that's intentionally
+  open to the internet without auth, because GitHub has no way to send it a
+  bearer token. It's protected entirely by HMAC-SHA256 signature
+  verification (`X-Hub-Signature-256`) against `GitHub:WebhookSecret`,
+  computed over the raw request body with a constant-time comparison. If
+  you find a way around or through that check, that's a high-priority
+  report — please send it our way.
+- **How credentials are handled** — `GitHub:AccessToken` and
+  `GitHub:WebhookSecret` are supposed to live in `dotnet user-secrets` or an
+  environment variable, never in a file that gets committed. If you spot a
+  code path that logs, echoes, or otherwise leaks either one, we'd want to
+  know.
+- **The rest of the API has no authentication at all right now** — that's a
+  known, documented limitation (it's in the README), not something you need
+  to report on its own. But if you find something that goes further than
+  "an unauthenticated caller can hit this endpoint" — injection, path
+  traversal, SSRF, that sort of thing — that's absolutely in scope.
 
 ## Dependencies
 
-This project pins package versions and has previously resolved a known
-high-severity transitive vulnerability (`Microsoft.OpenApi`) by pinning to a
-patched version. If a dependency scan flags something, a PR bumping the
-affected package (with `dotnet test` passing) is welcome alongside or
-instead of a private report — dependency version bumps aren't sensitive.
+Package versions here are pinned, and we've already had to resolve at least
+one known high-severity transitive vulnerability (`Microsoft.OpenApi`) by
+pinning to a patched version. If a dependency scanner flags something in
+this repo, feel free to just open a PR bumping the affected package
+(green `dotnet test` included) instead of going through the private-report
+process — a version bump on its own isn't sensitive.

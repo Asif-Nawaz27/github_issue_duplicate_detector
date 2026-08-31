@@ -1,4 +1,12 @@
-# Contributor Covenant Code of Conduct
+# Code of Conduct
+
+The short version: be decent to each other. Disagree about code, architecture,
+API design, whatever you want — that's normal and healthy. Just don't make it
+personal, and don't make this space unwelcoming for anyone else who wants to
+contribute.
+
+The longer, more formal version below is the [Contributor Covenant][homepage],
+which most open-source projects use — we didn't see a reason to reinvent it.
 
 ## Our Pledge
 
@@ -52,12 +60,10 @@ public spaces.
 
 ## Enforcement
 
-Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported to the project maintainer at **asif.nawaz8787@gmail.com**. All
-complaints will be reviewed and investigated promptly and fairly.
-
-All project maintainers are obligated to respect the privacy and security of
-the reporter of any incident.
+If something happens that shouldn't have — harassment, abuse, anything that
+crosses the line above — please tell us. Email
+**asif.nawaz8787@gmail.com** and we'll look into it promptly and fairly.
+Your privacy as the reporter will be respected throughout.
 
 ## Enforcement Guidelines
 

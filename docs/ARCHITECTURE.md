@@ -16,19 +16,19 @@ Data/Domain  <---  App/Application  <---  Data/Infrastructure
 Arrows point from "depends on" to "depended on". Nothing in an inner layer
 references an outer one.
 
-- **`Data/Domain`** (`IssueSense.Domain`) — entities (`Repository`, `Issue`,
-  `IssueEmbedding`, `DuplicateCandidate`) and value objects
+- **`Data/Domain`** (`IssueSense.Domain`) — entities (`Owner`, `Repository`,
+  `Issue`, `IssueEmbedding`, `DuplicateCandidate`) and value objects
   (`EmbeddingVector`, `SimilarityScore`). Plain C#, no EF Core, no ASP.NET
   Core, no third-party packages. Entities validate their own invariants in
   factory methods (e.g. `Issue.Create` rejects an empty title).
 - **`App/Application`** (`IssueSense.Application`) — use cases
   (`IssueImportService`, `EmbeddingGenerationService`,
-  `DuplicateDetectionService`, `GitHubIssueWebhookHandler`) and the *ports*
-  they depend on, expressed as interfaces: `IGitHubService`,
-  `IEmbeddingService`, `IRepositoryRepository`/`IIssueRepository`/
-  `IIssueEmbeddingRepository`/`IUnitOfWork`, `IDuplicateNotifier`. This
-  layer defines *what* the system does and *what it needs*, not how those
-  needs are met.
+  `DuplicateDetectionService`, `GitHubIssueWebhookHandler`, `OwnerService`,
+  `RepositoryLookupService`) and the *ports* they depend on, expressed as
+  interfaces: `IGitHubService`, `IEmbeddingService`,
+  `IRepositoryRepository`/`IIssueRepository`/`IIssueEmbeddingRepository`/
+  `IOwnerRepository`/`IUnitOfWork`, `IDuplicateNotifier`. This layer defines
+  *what* the system does and *what it needs*, not how those needs are met.
 - **`Data/Infrastructure`** (`IssueSense.Infrastructure`) — implements every
   port from Application: `GitHubService` (REST client), `LocalEmbeddingService`
   (ONNX inference), EF Core `DbContext` + repositories (Postgres/pgvector),
@@ -36,11 +36,21 @@ references an outer one.
   the only layer that knows about HTTP clients, SQL, or ONNX.
 - **`App/Api`** — ASP.NET Core host. Controllers translate HTTP requests
   into Application calls and map results to DTOs (`App/Api/Contracts/...`).
-  No business logic lives here.
+  No business logic lives here. Every controller inherits `BaseController`,
+  which centralizes `[ApiController]` and a per-controller logger (see
+  `App/Api/Controllers/BaseController.cs`); cross-origin access (for the web
+  dashboard) is gated by `Cors:AllowedOrigins` in configuration.
 
 This split means the duplicate-detection algorithm, the import pipeline, and
 the webhook handling logic are all testable without a database, an HTTP
 server, or a real GitHub account — see the fakes under `Tests/*.Tests`.
+
+Two more projects sit alongside this stack without being part of it:
+`Tools/Evaluation` (a console app for measuring detection accuracy — see
+[its README](../Tools/Evaluation/README.md)) and `App/Web` (an optional
+React dashboard — see [its README](../App/Web/README.md)). Both are plain
+clients of the API; neither is referenced by App/Api or the other way
+around.
 
 ## Data model
 
