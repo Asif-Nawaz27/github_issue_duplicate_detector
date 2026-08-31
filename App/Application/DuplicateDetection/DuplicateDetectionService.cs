@@ -56,7 +56,7 @@ public sealed class DuplicateDetectionService(
             existingIssue?.Id,
             cancellationToken);
 
-        var candidates = matches.Select(match => ToCandidateMatch(match, repository.FullName, settings)).ToList();
+        var candidates = matches.Select(match => ToCandidateMatch(match, $"{owner}/{name}", settings)).ToList();
 
         return new DuplicateDetectionResult(candidates, embeddingResult.ModelName, settings.MinimumSimilarityThreshold);
     }

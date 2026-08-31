@@ -14,15 +14,16 @@ internal sealed class RepositoryConfiguration : IEntityTypeConfiguration<Reposit
         builder.Property(r => r.Id).ValueGeneratedNever();
 
         builder.Property(r => r.GitHubRepositoryId).IsRequired();
-        builder.Property(r => r.Owner).IsRequired().HasMaxLength(200);
+        builder.Property(r => r.OwnerId).IsRequired();
         builder.Property(r => r.Name).IsRequired().HasMaxLength(200);
         builder.Property(r => r.IsActive).IsRequired();
         builder.Property(r => r.CreatedAt).IsRequired();
 
-        // Computed from Owner/Name; not a persisted column.
-        builder.Ignore(r => r.FullName);
+        // No navigation property on Repository (see the comment on the entity), but the FK
+        // relationship still needs declaring so EF Core enforces and indexes it.
+        builder.HasOne<Owner>().WithMany().HasForeignKey(r => r.OwnerId).IsRequired();
 
         builder.HasIndex(r => r.GitHubRepositoryId).IsUnique();
-        builder.HasIndex(r => new { r.Owner, r.Name }).IsUnique();
+        builder.HasIndex(r => new { r.OwnerId, r.Name }).IsUnique();
     }
 }

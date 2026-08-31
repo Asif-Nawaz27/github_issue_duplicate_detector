@@ -1,6 +1,7 @@
 using IssueSense.Application.GitHub.Models;
 using IssueSense.Application.Import;
 using IssueSense.Application.Tests.Import.Fakes;
+using IssueSense.Domain.Entities;
 using IssueSense.Domain.Enums;
 
 namespace IssueSense.Application.Tests.Import;
@@ -10,12 +11,18 @@ public class IssueImportServiceTests
     private static readonly DateTimeOffset BaseTime = new(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
 
     private readonly FakeGitHubService _gitHubService = new();
-    private readonly InMemoryRepositoryRepository _repositoryRepository = new();
+    private readonly InMemoryOwnerRepository _ownerRepository = new();
+    private readonly InMemoryRepositoryRepository _repositoryRepository;
     private readonly InMemoryIssueRepository _issueRepository = new();
     private readonly InMemoryUnitOfWork _unitOfWork = new();
 
+    public IssueImportServiceTests()
+    {
+        _repositoryRepository = new InMemoryRepositoryRepository(_ownerRepository);
+    }
+
     private IssueImportService CreateSut() =>
-        new(_gitHubService, _repositoryRepository, _issueRepository, _unitOfWork);
+        new(_gitHubService, _repositoryRepository, _issueRepository, _ownerRepository, _unitOfWork);
 
     private static GitHubIssueInfo CreateGitHubIssue(
         int number,
@@ -44,7 +51,9 @@ public class IssueImportServiceTests
         await sut.ImportAsync("octocat", "hello-world");
 
         var repository = Assert.Single(_repositoryRepository.Repositories);
-        Assert.Equal("octocat", repository.Owner);
+        var owner = Assert.Single(_ownerRepository.Owners);
+        Assert.Equal("octocat", owner.Name);
+        Assert.Equal(owner.Id, repository.OwnerId);
         Assert.Equal("hello-world", repository.Name);
         Assert.Equal(1, repository.GitHubRepositoryId);
     }
@@ -168,8 +177,22 @@ public class IssueImportServiceTests
     }
 
     [Fact]
-    public async Task ImportAsync_CallsSaveChangesExactlyOncePerImport()
+    public async Task ImportAsync_WithNewOwner_CreatesOwnerAndCallsSaveChangesTwice()
     {
+        // The new owner needs a real, DB-generated id before Repository.Create can use it (no
+        // navigation property to fix it up later), so creating one costs an extra SaveChanges.
+        _gitHubService.Issues = [CreateGitHubIssue(1), CreateGitHubIssue(2)];
+        var sut = CreateSut();
+
+        await sut.ImportAsync("octocat", "hello-world");
+
+        Assert.Equal(2, _unitOfWork.SaveChangesCallCount);
+    }
+
+    [Fact]
+    public async Task ImportAsync_WithExistingOwner_CallsSaveChangesExactlyOnce()
+    {
+        _ownerRepository.Add(Owner.Create("octocat", BaseTime.UtcDateTime));
         _gitHubService.Issues = [CreateGitHubIssue(1), CreateGitHubIssue(2)];
         var sut = CreateSut();
 

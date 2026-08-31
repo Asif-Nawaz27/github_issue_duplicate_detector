@@ -2,11 +2,13 @@ using IssueSense.Domain.Common;
 
 namespace IssueSense.Domain.Entities;
 
+// References Owner by id only, not a navigation property: Repository and Owner are separate
+// aggregate roots, each persisted and loaded independently (same convention as Issue -> Repository).
 public sealed class Repository : Entity
 {
     public long GitHubRepositoryId { get; }
 
-    public string Owner { get; }
+    public int OwnerId { get; }
 
     public string Name { get; }
 
@@ -14,28 +16,26 @@ public sealed class Repository : Entity
 
     public DateTimeOffset CreatedAt { get; }
 
-    public string FullName => $"{Owner}/{Name}";
-
-    private Repository(Guid id, long gitHubRepositoryId, string owner, string name, DateTimeOffset createdAt)
+    private Repository(Guid id, long gitHubRepositoryId, int ownerId, string name, DateTimeOffset createdAt)
         : base(id)
     {
         GitHubRepositoryId = gitHubRepositoryId;
-        Owner = owner;
+        OwnerId = ownerId;
         Name = name;
         IsActive = true;
         CreatedAt = createdAt;
     }
 
-    public static Repository Create(long gitHubRepositoryId, string owner, string name, DateTimeOffset createdAt)
+    public static Repository Create(long gitHubRepositoryId, int ownerId, string name, DateTimeOffset createdAt)
     {
         if (gitHubRepositoryId <= 0)
             throw new ArgumentOutOfRangeException(nameof(gitHubRepositoryId), gitHubRepositoryId, "GitHub repository id must be positive.");
-        if (string.IsNullOrWhiteSpace(owner))
-            throw new ArgumentException("Repository owner is required.", nameof(owner));
+        if (ownerId <= 0)
+            throw new ArgumentOutOfRangeException(nameof(ownerId), ownerId, "Owner id must be positive.");
         if (string.IsNullOrWhiteSpace(name))
             throw new ArgumentException("Repository name is required.", nameof(name));
 
-        return new Repository(Guid.NewGuid(), gitHubRepositoryId, owner.Trim(), name.Trim(), createdAt);
+        return new Repository(Guid.NewGuid(), gitHubRepositoryId, ownerId, name.Trim(), createdAt);
     }
 
 #pragma warning disable CS8618 // Required by EF Core for materialization; properties are set via reflection.

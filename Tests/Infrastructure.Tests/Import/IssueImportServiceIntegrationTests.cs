@@ -38,7 +38,12 @@ public sealed class IssueImportServiceIntegrationTests(PostgresContainerFixture 
             Labels: labels ?? []);
 
     private static IssueImportService CreateSut(IssueSenseDbContext dbContext, FakeGitHubService gitHubService) =>
-        new(gitHubService, new RepositoryRepository(dbContext), new IssueRepository(dbContext), new UnitOfWork(dbContext));
+        new(
+            gitHubService,
+            new RepositoryRepository(dbContext),
+            new IssueRepository(dbContext),
+            new OwnerRepository(dbContext),
+            new UnitOfWork(dbContext));
 
     [Fact]
     public async Task ImportAsync_PersistsRepositoryAndIssuesToDatabase()

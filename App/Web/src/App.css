@@ -87,6 +87,17 @@ button:not(:disabled):hover {
   filter: brightness(1.08);
 }
 
+button.secondary {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+button.secondary:not(:disabled):hover {
+  filter: none;
+  background: var(--input-bg);
+}
+
 .hint {
   margin: 0.5rem 0 0;
   font-size: 0.85rem;
@@ -236,4 +247,121 @@ button:not(:disabled):hover {
 
 .activity-summary {
   font-size: 0.85rem;
+}
+
+.owner-field {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
+
+.owner-field button.secondary {
+  padding: 0.5rem 0.75rem;
+  white-space: nowrap;
+  font-size: 0.85rem;
+}
+
+.combobox {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+.combobox input {
+  width: 100%;
+}
+
+.combobox-panel {
+  position: absolute;
+  top: calc(100% + 0.25rem);
+  left: 0;
+  right: 0;
+  z-index: 20;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.combobox-list {
+  list-style: none;
+  margin: 0;
+  padding: 0.25rem;
+}
+
+.combobox-option {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  color: inherit;
+  border: none;
+  border-radius: 6px;
+  padding: 0.45rem 0.6rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.combobox-option:hover {
+  background: var(--input-bg);
+  filter: none;
+}
+
+.combobox-option-selected {
+  background: var(--accent);
+  color: white;
+}
+
+.combobox-empty {
+  padding: 0.6rem 0.75rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 1rem;
+}
+
+.modal {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 360px;
+}
+
+.modal h2 {
+  margin: 0 0 1rem;
+  font-size: 1.1rem;
+}
+
+.modal form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.modal label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
 }
