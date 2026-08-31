@@ -13,12 +13,14 @@ public class DuplicateDetectionServiceTests
 {
     private static readonly DateTimeOffset BaseTime = new(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
 
-    private readonly InMemoryRepositoryRepository _repositoryRepository = new();
+    private readonly InMemoryOwnerRepository _ownerRepository = new();
+    private readonly InMemoryRepositoryRepository _repositoryRepository;
     private readonly InMemoryIssueEmbeddingRepository _issueEmbeddingRepository = new();
     private readonly InMemoryIssueRepository _issueRepository;
 
     public DuplicateDetectionServiceTests()
     {
+        _repositoryRepository = new InMemoryRepositoryRepository(_ownerRepository);
         _issueRepository = new InMemoryIssueRepository(_issueEmbeddingRepository);
         _issueEmbeddingRepository.IssueRepository = _issueRepository;
     }
@@ -33,7 +35,14 @@ public class DuplicateDetectionServiceTests
 
     private Repository AddRepository(string owner = "octocat", string name = "hello-world")
     {
-        var repository = Repository.Create(1, owner, name, BaseTime);
+        var ownerEntity = _ownerRepository.Owners.SingleOrDefault(o => o.Name == owner);
+        if (ownerEntity is null)
+        {
+            ownerEntity = Owner.Create(owner, BaseTime.UtcDateTime);
+            _ownerRepository.Add(ownerEntity);
+        }
+
+        var repository = Repository.Create(1, ownerEntity.Id, name, BaseTime);
         _repositoryRepository.Add(repository);
 
         return repository;

@@ -6,6 +6,7 @@ using IssueSense.Domain.ValueObjects;
 using IssueSense.Infrastructure.Persistence;
 using IssueSense.Infrastructure.Persistence.Repositories;
 using IssueSense.Infrastructure.Tests.TestFixtures;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
 namespace IssueSense.Infrastructure.Tests.DuplicateDetection;
@@ -40,10 +41,24 @@ public sealed class DuplicateDetectionServiceIntegrationTests(PostgresContainerF
             new IssueEmbeddingRepository(dbContext),
             Options.Create(options ?? new DuplicateDetectionOptions()));
 
+    private static async Task<int> GetOrCreateOwnerIdAsync(IssueSenseDbContext dbContext, string ownerName = "octocat")
+    {
+        var owner = await dbContext.Owners.SingleOrDefaultAsync(o => o.Name == ownerName);
+        if (owner is not null)
+            return owner.Id;
+
+        owner = Owner.Create(ownerName, DateTime.SpecifyKind(BaseTime.UtcDateTime, DateTimeKind.Unspecified));
+        dbContext.Owners.Add(owner);
+        await dbContext.SaveChangesAsync();
+
+        return owner.Id;
+    }
+
     private static async Task<(string RepoName, Repository Repository)> SeedRepositoryAsync(IssueSenseDbContext dbContext)
     {
+        var ownerId = await GetOrCreateOwnerIdAsync(dbContext);
         var repoName = $"repo-{Guid.NewGuid():N}";
-        var repository = Repository.Create(Random.Shared.NextInt64(1, int.MaxValue), "octocat", repoName, BaseTime);
+        var repository = Repository.Create(Random.Shared.NextInt64(1, int.MaxValue), ownerId, repoName, BaseTime);
         dbContext.Repositories.Add(repository);
         await dbContext.SaveChangesAsync();
 

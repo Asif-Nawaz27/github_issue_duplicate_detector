@@ -13,6 +13,8 @@ public sealed class IssueSenseDbContext(DbContextOptions<IssueSenseDbContext> op
 
     public DbSet<DuplicateCandidate> DuplicateCandidates => Set<DuplicateCandidate>();
 
+    public DbSet<Owner> Owners => Set<Owner>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasPostgresExtension("vector");

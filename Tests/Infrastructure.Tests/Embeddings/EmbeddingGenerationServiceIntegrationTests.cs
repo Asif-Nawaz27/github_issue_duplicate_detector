@@ -25,11 +25,25 @@ public sealed class EmbeddingGenerationServiceIntegrationTests(PostgresContainer
             new UnitOfWork(dbContext),
             NullLogger<EmbeddingGenerationService>.Instance);
 
+    private static async Task<int> GetOrCreateOwnerIdAsync(IssueSenseDbContext dbContext, string ownerName = "octocat")
+    {
+        var owner = await dbContext.Owners.SingleOrDefaultAsync(o => o.Name == ownerName);
+        if (owner is not null)
+            return owner.Id;
+
+        owner = Owner.Create(ownerName, DateTime.SpecifyKind(BaseTime.UtcDateTime, DateTimeKind.Unspecified));
+        dbContext.Owners.Add(owner);
+        await dbContext.SaveChangesAsync();
+
+        return owner.Id;
+    }
+
     private static async Task<(string RepoName, Guid RepositoryId, List<Guid> IssueIds)> SeedRepositoryWithIssuesAsync(
         IssueSenseDbContext dbContext, int issueCount)
     {
+        var ownerId = await GetOrCreateOwnerIdAsync(dbContext);
         var repoName = $"repo-{Guid.NewGuid():N}";
-        var repository = Repository.Create(Random.Shared.NextInt64(1, int.MaxValue), "octocat", repoName, BaseTime);
+        var repository = Repository.Create(Random.Shared.NextInt64(1, int.MaxValue), ownerId, repoName, BaseTime);
         dbContext.Repositories.Add(repository);
 
         var issueIds = new List<Guid>();

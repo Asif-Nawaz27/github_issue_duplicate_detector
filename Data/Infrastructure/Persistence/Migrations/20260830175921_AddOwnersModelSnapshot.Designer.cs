@@ -3,6 +3,7 @@ using System;
 using IssueSense.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Pgvector;
@@ -12,9 +13,11 @@ using Pgvector;
 namespace IssueSense.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(IssueSenseDbContext))]
-    partial class IssueSenseDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260830175921_AddOwnersModelSnapshot")]
+    partial class AddOwnersModelSnapshot
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -169,9 +172,6 @@ namespace IssueSense.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Name")
-                        .IsUnique();
-
                     b.ToTable("onwers", (string)null);
                 });
 
@@ -194,15 +194,17 @@ namespace IssueSense.Infrastructure.Persistence.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
-                    b.Property<int>("OwnerId")
-                        .HasColumnType("integer");
+                    b.Property<string>("Owner")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("GitHubRepositoryId")
                         .IsUnique();
 
-                    b.HasIndex("OwnerId", "Name")
+                    b.HasIndex("Owner", "Name")
                         .IsUnique();
 
                     b.ToTable("repositories", (string)null);
@@ -237,15 +239,6 @@ namespace IssueSense.Infrastructure.Persistence.Migrations
                     b.HasOne("IssueSense.Domain.Entities.Issue", null)
                         .WithOne()
                         .HasForeignKey("IssueSense.Domain.Entities.IssueEmbedding", "IssueId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("IssueSense.Domain.Entities.Repository", b =>
-                {
-                    b.HasOne("IssueSense.Domain.Entities.Owner", null)
-                        .WithMany()
-                        .HasForeignKey("OwnerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

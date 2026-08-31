@@ -44,14 +44,21 @@ server, or a real GitHub account — see the fakes under `Tests/*.Tests`.
 
 ## Data model
 
-Four entities, stored via EF Core in PostgreSQL:
+Five entities, stored via EF Core in PostgreSQL:
 
 | Entity | Key fields | Notes |
 |---|---|---|
-| `Repository` | `GitHubRepositoryId`, `Owner`, `Name`, `IsActive` | One row per imported GitHub repo. `FullName` = `Owner/Name`. |
+| `Owner` | `Name`, `CreatedDate`, `ChangedDate` | A GitHub owner (user or org) known to IssueSense. Uses a DB-generated `int` identity key, unlike every other entity here — maps to the `onwers` table (a pre-existing typo, kept as-is; see `docs/DEVELOPMENT.md`). Created automatically the first time a repository is imported for that owner, or manually via the web dashboard. |
+| `Repository` | `GitHubRepositoryId`, `OwnerId`, `Name`, `IsActive` | One row per imported GitHub repo. References `Owner` by id only (see below), not a navigation property. |
 | `Issue` | `RepositoryId`, `GitHubIssueId`, `GitHubIssueNumber`, `Title`, `Body`, `State`, `Labels`, `Url` | Belongs to a `Repository` by id (not a navigation property — they're separate aggregate roots, loaded independently). `GitHubIssueId` is globally unique. |
 | `IssueEmbedding` | `IssueId`, `Vector` (`vector(384)`), `ModelName` | One embedding per issue. `ModelName` is stored alongside the vector so a future model change can't silently compare embeddings produced by different models. |
 | `DuplicateCandidate` | (see `Data/Domain/Entities/DuplicateCandidate.cs`) | Represents a detected candidate relationship; primarily used to shape detection results, not as a durable audit log today. |
+
+`Repository.OwnerId` follows the same convention as `Issue.RepositoryId`: a plain foreign
+key, no navigation property, because `Repository` and `Owner` are separate aggregate roots.
+Code that needs the owner's name alongside a repository (there's very little — mostly log
+messages and the `owner/name` string built for duplicate-candidate results) already has the
+owner name in scope from the request, rather than loading `Owner` separately.
 
 The `Vector` column uses [pgvector](https://github.com/pgvector/pgvector)'s
 `vector(384)` type with an HNSW index and `vector_cosine_ops`, so nearest-
