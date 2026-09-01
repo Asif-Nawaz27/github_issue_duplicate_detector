@@ -38,8 +38,14 @@ references an outer one.
   into Application calls and map results to DTOs (`App/Api/Contracts/...`).
   No business logic lives here. Every controller inherits `BaseController`,
   which centralizes `[ApiController]` and a per-controller logger (see
-  `App/Api/Controllers/BaseController.cs`); cross-origin access (for the web
-  dashboard) is gated by `Cors:AllowedOrigins` in configuration.
+  `App/Api/Controllers/BaseController.cs`). `Program.cs` itself is
+  deliberately thin — every service registration and every pipeline step
+  (CORS, exception handling, migrations-on-startup, controller mapping) is
+  defined in `App/Api/Infrastructure/MiddlewareExtension.cs`, so there's one
+  file to check for "what does this API register/configure on startup"
+  rather than a growing list of calls in `Program.cs`. Cross-origin access
+  (for the web dashboard) is gated by `Cors:AllowedOrigins` in
+  configuration, read in that same file.
 
 This split means the duplicate-detection algorithm, the import pipeline, and
 the webhook handling logic are all testable without a database, an HTTP
