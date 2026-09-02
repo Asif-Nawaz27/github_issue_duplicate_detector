@@ -78,8 +78,8 @@ public static class DependencyInjection
         services.AddSingleton<IGitHubWebhookParser, GitHubWebhookPayloadParser>();
         services.AddScoped<IDuplicateNotifier, GitHubCommentDuplicateNotifier>();
 
-        services.AddOptions<DuplicateCommentOptions>()
-            .Bind(configuration.GetSection(DuplicateCommentOptions.SectionName));
+        // DuplicateCommentOptions is registered by the caller (App/Api's MiddlewareExtension),
+        // derived from AppSettings, rather than bound here from raw configuration.
 
         return services;
     }
