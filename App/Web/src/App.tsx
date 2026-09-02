@@ -3,6 +3,17 @@ import './App.css'
 import { AddOwnerModal } from './AddOwnerModal'
 import { ApiError, checkDuplicate, generateEmbeddings, importIssues, listOwners, listRepositoriesByOwner } from './api'
 import { SearchableCombobox } from './SearchableCombobox'
+import {
+  AlertCircleIcon,
+  CheckCircleIcon,
+  ClockIcon,
+  ExternalLinkIcon,
+  FolderGitIcon,
+  ImportIcon,
+  PlusIcon,
+  SearchIcon,
+  SparkleIcon,
+} from './icons'
 import type {
   ActionKind,
   ActivityEntry,
@@ -39,6 +50,12 @@ function summarize(kind: ActionKind, result: IssueImportResult | EmbeddingGenera
         : `${r.candidates.length} candidate(s) · strongest: ${r.confidence}`
     }
   }
+}
+
+const actionMeta: Record<ActionKind, { label: string; icon: (props: { className?: string }) => React.ReactElement; tone: string }> = {
+  import: { label: 'Import', icon: ImportIcon, tone: 'import' },
+  'generate-embeddings': { label: 'Embed', icon: SparkleIcon, tone: 'embed' },
+  'check-duplicate': { label: 'Check', icon: SearchIcon, tone: 'check' },
 }
 
 function App() {
@@ -136,13 +153,30 @@ function App() {
 
   return (
     <div className="page">
-      <header className="page-header">
-        <h1>IssueSense</h1>
-        <p>Trigger duplicate-detection actions against a repository and watch what happens.</p>
+      <header className="topbar">
+        <div className="brand">
+          <span className="brand-mark">IS</span>
+          <div className="brand-text">
+            <span className="brand-name">IssueSense</span>
+            <span className="brand-tag">Duplicate detection console</span>
+          </div>
+        </div>
+        <div className={`repo-chip ${repoReady ? 'repo-chip-active' : ''}`}>
+          <span className="repo-chip-dot" />
+          {repoReady ? `${owner}/${repository}` : 'No repository selected'}
+        </div>
       </header>
 
-      <section className="card">
-        <h2>Repository</h2>
+      <section className="card toolbar-card">
+        <div className="toolbar-card-head">
+          <span className="toolbar-icon">
+            <FolderGitIcon />
+          </span>
+          <div>
+            <h2>Repository</h2>
+            <p className="description">Choose the GitHub owner and repository to run actions against.</p>
+          </div>
+        </div>
         <div className="field-row">
           <label>
             Owner
@@ -155,7 +189,8 @@ function App() {
                 emptyItemsMessage="No owners yet"
               />
               <button type="button" className="secondary" onClick={() => setIsAddOwnerOpen(true)}>
-                + Add owner
+                <PlusIcon />
+                Add owner
               </button>
             </div>
           </label>
@@ -179,6 +214,7 @@ function App() {
 
       <section className="actions-grid">
         <ActionCard
+          kind="import"
           title="Import issues"
           description="Pulls every issue from GitHub into the local database."
           buttonLabel="Import"
@@ -186,20 +222,17 @@ function App() {
           state={importState}
           onRun={() => runAction('import', setImportState, () => importIssues(owner, repository))}
           renderResult={(r) => (
-            <dl className="result-grid">
-              <dt>Discovered</dt>
-              <dd>{r.issuesDiscovered}</dd>
-              <dt>Created</dt>
-              <dd>{r.issuesCreated}</dd>
-              <dt>Updated</dt>
-              <dd>{r.issuesUpdated}</dd>
-              <dt>Skipped</dt>
-              <dd>{r.issuesSkipped}</dd>
-            </dl>
+            <div className="stat-grid">
+              <Stat label="Discovered" value={r.issuesDiscovered} />
+              <Stat label="Created" value={r.issuesCreated} emphasize />
+              <Stat label="Updated" value={r.issuesUpdated} />
+              <Stat label="Skipped" value={r.issuesSkipped} muted />
+            </div>
           )}
         />
 
         <ActionCard
+          kind="generate-embeddings"
           title="Generate embeddings"
           description="Embeds any imported issues that don't have one yet."
           buttonLabel="Generate"
@@ -207,20 +240,17 @@ function App() {
           state={embedState}
           onRun={() => runAction('generate-embeddings', setEmbedState, () => generateEmbeddings(owner, repository))}
           renderResult={(r) => (
-            <dl className="result-grid">
-              <dt>Processed</dt>
-              <dd>{r.totalIssuesProcessed}</dd>
-              <dt>Embedded</dt>
-              <dd>{r.embeddingsGenerated}</dd>
-              <dt>Skipped</dt>
-              <dd>{r.issuesSkipped}</dd>
-              <dt>Failed</dt>
-              <dd>{r.failures}</dd>
-            </dl>
+            <div className="stat-grid">
+              <Stat label="Processed" value={r.totalIssuesProcessed} />
+              <Stat label="Embedded" value={r.embeddingsGenerated} emphasize />
+              <Stat label="Skipped" value={r.issuesSkipped} muted />
+              <Stat label="Failed" value={r.failures} danger={r.failures > 0} />
+            </div>
           )}
         />
 
         <ActionCard
+          kind="check-duplicate"
           title="Check duplicate"
           description="Checks a candidate title/body against existing issues. Read-only."
           buttonLabel="Check"
@@ -260,9 +290,17 @@ function App() {
                         <td>
                           <a href={c.url} target="_blank" rel="noreferrer">
                             #{c.issueNumber} {c.title}
+                            <ExternalLinkIcon className="link-icon" />
                           </a>
                         </td>
-                        <td>{(c.similarity * 100).toFixed(1)}%</td>
+                        <td>
+                          <div className="similarity-cell">
+                            <span className="similarity-track">
+                              <span className="similarity-fill" style={{ width: `${(c.similarity * 100).toFixed(1)}%` }} />
+                            </span>
+                            {(c.similarity * 100).toFixed(1)}%
+                          </div>
+                        </td>
                         <td>
                           <span className={`badge badge-${c.classification.toLowerCase()}`}>{c.classification}</span>
                         </td>
@@ -281,24 +319,41 @@ function App() {
       </section>
 
       <section className="card activity">
-        <h2>Activity</h2>
+        <div className="activity-head">
+          <h2>Activity</h2>
+          {activity.length > 0 && <span className="activity-count">{activity.length}</span>}
+        </div>
         {activity.length === 0 ? (
           <p className="hint">Nothing yet — run an action above and it'll show up here.</p>
         ) : (
           <ul className="activity-list">
-            {activity.map((entry) => (
-              <li key={entry.id} className={`activity-item activity-${entry.status}`}>
-                <div className="activity-line">
-                  <span className="activity-time">{entry.startedAt.toLocaleTimeString()}</span>
-                  <span className="activity-kind">{entry.kind}</span>
-                  <span className="activity-repo">
-                    {entry.owner}/{entry.repository}
+            {activity.map((entry) => {
+              const meta = actionMeta[entry.kind]
+              const Icon = meta.icon
+              return (
+                <li key={entry.id} className={`activity-item activity-${entry.status}`}>
+                  <span className={`activity-icon activity-icon-${entry.status}`}>
+                    <Icon />
                   </span>
-                  <span className="activity-duration">{entry.durationMs}ms</span>
-                </div>
-                <div className="activity-summary">{entry.summary}</div>
-              </li>
-            ))}
+                  <div className="activity-body">
+                    <div className="activity-line">
+                      <span className="activity-kind">{meta.label}</span>
+                      <span className="activity-repo">
+                        {entry.owner}/{entry.repository}
+                      </span>
+                      <span className="activity-status-icon">
+                        {entry.status === 'success' ? <CheckCircleIcon /> : <AlertCircleIcon />}
+                      </span>
+                    </div>
+                    <div className="activity-summary">{entry.summary}</div>
+                    <div className="activity-meta">
+                      <ClockIcon />
+                      {entry.startedAt.toLocaleTimeString()} · {entry.durationMs}ms
+                    </div>
+                  </div>
+                </li>
+              )
+            })}
           </ul>
         )}
       </section>
@@ -308,7 +363,22 @@ function App() {
   )
 }
 
+function Stat(props: { label: string; value: number; emphasize?: boolean; muted?: boolean; danger?: boolean }) {
+  const { label, value, emphasize, muted, danger } = props
+  const cls = ['stat-tile']
+  if (emphasize) cls.push('stat-tile-emphasize')
+  if (muted) cls.push('stat-tile-muted')
+  if (danger) cls.push('stat-tile-danger')
+  return (
+    <div className={cls.join(' ')}>
+      <span className="stat-value">{value}</span>
+      <span className="stat-label">{label}</span>
+    </div>
+  )
+}
+
 function ActionCard<T extends IssueImportResult | EmbeddingGenerationResult | CheckDuplicateResponse>(props: {
+  kind: ActionKind
   title: string
   description: string
   buttonLabel: string
@@ -318,17 +388,38 @@ function ActionCard<T extends IssueImportResult | EmbeddingGenerationResult | Ch
   extraFields?: React.ReactNode
   renderResult: (data: T) => React.ReactNode
 }) {
-  const { title, description, buttonLabel, disabled, state, onRun, extraFields, renderResult } = props
+  const { kind, title, description, buttonLabel, disabled, state, onRun, extraFields, renderResult } = props
+  const meta = actionMeta[kind]
+  const Icon = meta.icon
 
   return (
-    <section className="card action-card">
-      <h2>{title}</h2>
-      <p className="description">{description}</p>
+    <section className={`card action-card action-card-${meta.tone}`}>
+      <div className="action-card-head">
+        <span className="action-icon">
+          <Icon />
+        </span>
+        <div>
+          <h2>{title}</h2>
+          <p className="description">{description}</p>
+        </div>
+      </div>
       {extraFields && <div className="field-column">{extraFields}</div>}
       <button onClick={onRun} disabled={disabled || state.status === 'loading'}>
-        {state.status === 'loading' ? 'Running…' : buttonLabel}
+        {state.status === 'loading' ? (
+          <>
+            <span className="spinner" />
+            Running…
+          </>
+        ) : (
+          buttonLabel
+        )}
       </button>
-      {state.status === 'error' && <p className="error">{state.message}</p>}
+      {state.status === 'error' && (
+        <p className="error">
+          <AlertCircleIcon />
+          {state.message}
+        </p>
+      )}
       {state.status === 'success' && <div className="result">{renderResult(state.data)}</div>}
     </section>
   )
