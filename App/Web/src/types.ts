@@ -44,6 +44,12 @@ export interface Owner {
 
 export type ActionKind = 'import' | 'generate-embeddings' | 'check-duplicate'
 
+export type AsyncState<T> =
+  | { status: 'idle' }
+  | { status: 'loading' }
+  | { status: 'success'; data: T }
+  | { status: 'error'; message: string }
+
 export interface ActivityEntry {
   id: string
   kind: ActionKind

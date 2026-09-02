@@ -89,6 +89,45 @@
   box-shadow: 0 0 0 3px var(--success-soft);
 }
 
+/* ---------- Page nav ---------- */
+
+.page-nav {
+  display: flex;
+  gap: 0.35rem;
+  padding: 0.3rem;
+  border-radius: var(--radius-md);
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  width: fit-content;
+}
+
+.nav-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 0.9rem;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.85rem;
+  box-shadow: none;
+}
+
+.nav-tab:not(:disabled):hover {
+  filter: none;
+  background: var(--card-bg);
+  color: var(--text);
+  box-shadow: none;
+}
+
+.nav-tab-active,
+.nav-tab-active:not(:disabled):hover {
+  background: var(--card-bg);
+  color: var(--accent-strong);
+  box-shadow: var(--shadow-xs);
+}
+
 /* ---------- Cards ---------- */
 
 .card {
@@ -274,6 +313,21 @@ button.secondary:not(:disabled):hover {
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 1.25rem;
   align-items: start;
+}
+
+.actions-grid-dashboard {
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  align-items: stretch;
+  max-width: 860px;
+}
+
+.actions-grid-dashboard .action-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.actions-grid-dashboard .action-card button {
+  margin-top: auto;
 }
 
 .action-card {
@@ -647,6 +701,70 @@ button.secondary:not(:disabled):hover {
   margin-top: 0.25rem;
   font-size: 0.74rem;
   color: var(--muted-2);
+}
+
+/* ---------- Check duplicate page ---------- */
+
+.check-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.check-page-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.9rem;
+}
+
+.check-page-head h1 {
+  margin: 0 0 0.3rem;
+  font-size: 1.4rem;
+}
+
+.check-page-head .description {
+  margin: 0;
+  max-width: 60ch;
+}
+
+.action-icon-lg {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  background: color-mix(in srgb, #0891b2 14%, transparent);
+  color: #0891b2;
+}
+
+.action-icon-lg svg {
+  width: 22px;
+  height: 22px;
+}
+
+.check-page-grid {
+  display: grid;
+  grid-template-columns: minmax(280px, 420px) 1fr;
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.check-form-card button {
+  background: #0891b2;
+  width: 100%;
+  margin-top: 0.2rem;
+}
+
+.check-results-card {
+  min-height: 100%;
+}
+
+.check-results-card h2 {
+  margin-bottom: 0.9rem;
+}
+
+@media (max-width: 860px) {
+  .check-page-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* ---------- Owner field / combobox ---------- */
