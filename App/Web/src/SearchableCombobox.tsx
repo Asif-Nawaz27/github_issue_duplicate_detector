@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { ChevronDownIcon } from './icons'
 
 export function SearchableCombobox(props: {
   items: string[]
@@ -56,6 +57,7 @@ export function SearchableCombobox(props: {
           if (allowFreeText) onChange(next)
         }}
       />
+      <ChevronDownIcon className={isOpen ? 'combobox-chevron combobox-chevron-open' : 'combobox-chevron'} />
       {isOpen && (
         <div className="combobox-panel">
           {filtered.length === 0 ? (
