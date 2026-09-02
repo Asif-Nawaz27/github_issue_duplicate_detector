@@ -8,6 +8,7 @@ using IssueSense.Application.Webhooks;
 using IssueSense.Infrastructure;
 using IssueSense.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Npgsql;
 using Scalar.AspNetCore;
 
@@ -29,9 +30,16 @@ namespace IssueSense.Api.Infrastructure
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             services.AddOpenApi();
 
-            services.AddApplication(configuration);
+            // Read the "AppSettings" section from configuration exactly once; everything below
+            // that needs a value from it (CORS, DuplicateDetectionOptions) uses this object, not
+            // another configuration.GetSection(...) call of its own.
+            var appSettings = configuration.GetSection(AppSettings.SectionName).Get<AppSettings>() ?? new AppSettings();
+            services.AddSingleton(appSettings);
+            services.AddSingleton(Options.Create(appSettings));
+
+            services.AddApplication(appSettings);
             services.AddInfrastructure(configuration);
-            services.AddCorsPolicy(configuration);
+            services.AddCorsPolicy(appSettings);
 
             services.AddExceptionHandler<GlobalExceptionHandler>();
             services.AddProblemDetails();
@@ -71,7 +79,7 @@ namespace IssueSense.Api.Infrastructure
             return app;
         }
 
-        private static IServiceCollection AddApplication(this IServiceCollection services, IConfiguration configuration)
+        private static IServiceCollection AddApplication(this IServiceCollection services, AppSettings appSettings)
         {
             services.AddScoped<IIssueImportService, IssueImportService>();
             services.AddScoped<IEmbeddingGenerationService, EmbeddingGenerationService>();
@@ -80,8 +88,11 @@ namespace IssueSense.Api.Infrastructure
             services.AddScoped<IOwnerService, OwnerService>();
             services.AddScoped<IRepositoryLookupService, RepositoryLookupService>();
 
-            services.AddOptions<DuplicateDetectionOptions>()
-                .Bind(configuration.GetSection(DuplicateDetectionOptions.SectionName));
+            // DuplicateDetectionService only needs IOptions<DuplicateDetectionOptions>, not the
+            // whole AppSettings — wraps the exact same DuplicateDetectionOptions instance already
+            // bound inside appSettings, so Application never needs to know AppSettings (an
+            // Api-layer type) exists, and nothing here re-reads configuration.
+            services.AddSingleton(Options.Create(appSettings.DuplicateDetection));
 
             return services;
         }
@@ -117,19 +128,19 @@ namespace IssueSense.Api.Infrastructure
             return services;
         }
 
-        private static IServiceCollection AddCorsPolicy(this IServiceCollection services, IConfiguration configuration)
+        private static IServiceCollection AddCorsPolicy(this IServiceCollection services, AppSettings appSettings)
         {
-            // Origins come from config (Cors:AllowedOrigins) rather than being hardcoded, so
-            // deployments can allow their own frontend's origin without a code change. No configured
-            // origins means no cross-origin caller is allowed — fail closed, not open.
-            var allowedOrigins = configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
+            // Origins come from appSettings.CorsAllowedOrigins (bound once, in AddMiddleware)
+            // rather than being hardcoded, so deployments can allow their own frontend's origin
+            // without a code change. No configured origins means no cross-origin caller is
+            // allowed — fail closed, not open.
             services.AddCors(options =>
             {
                 options.AddPolicy(WebDashboardCorsPolicy, policy =>
                 {
-                    if (allowedOrigins.Length > 0)
+                    if (appSettings.CorsAllowedOrigins.Length > 0)
                     {
-                        policy.WithOrigins(allowedOrigins).AllowAnyHeader().AllowAnyMethod();
+                        policy.WithOrigins(appSettings.CorsAllowedOrigins).AllowAnyHeader().AllowAnyMethod();
                     }
                 });
             });
