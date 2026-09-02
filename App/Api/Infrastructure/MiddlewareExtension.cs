@@ -38,7 +38,7 @@ namespace IssueSense.Api.Infrastructure
             services.AddSingleton(Options.Create(appSettings));
 
             services.AddApplication(appSettings);
-            services.AddInfrastructure(configuration);
+            services.AddInfrastructure(configuration, appSettings);
             services.AddCorsPolicy(appSettings);
 
             services.AddExceptionHandler<GlobalExceptionHandler>();
@@ -97,11 +97,16 @@ namespace IssueSense.Api.Infrastructure
             return services;
         }
 
-        private static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
+        private static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration, AppSettings appSettings)
         {
             services.AddPersistence(configuration);
             services.AddGitHubClient(configuration);
             services.AddEmbeddings(configuration);
+
+            // DuplicateCommentOptions is consumed inside Infrastructure (GitHubCommentDuplicateNotifier),
+            // but Infrastructure can't reference AppSettings (an Api-layer type) to bind it itself —
+            // wraps the exact same instance already bound inside appSettings instead.
+            services.AddSingleton(Options.Create(appSettings.DuplicateComment));
 
             return services;
         }

@@ -1,4 +1,5 @@
 using IssueSense.Application.DuplicateDetection;
+using IssueSense.Infrastructure.GitHub.Webhooks;
 
 namespace IssueSense.Api.Infrastructure;
 
@@ -11,11 +12,16 @@ namespace IssueSense.Api.Infrastructure;
 /// the DI container is built.
 /// </summary>
 /// <remarks>
-/// Settings that already have their own focused options type and DI wiring — the GitHub
-/// integration (<c>GitHubOptions</c>, top-level "GitHub" section) and the database connection
-/// string (<c>ConnectionStrings:Postgres</c>) — deliberately stay outside this class rather than
-/// being folded in for the sake of "one class for everything"; they're not part of the
-/// "AppSettings" section in the JSON, and each already has a clear, single place it's consumed.
+/// Settings that already have their own focused options type and DI wiring for a reason other
+/// than "nobody's centralized it yet" stay outside this class — the GitHub integration
+/// (<c>GitHubOptions</c>, top-level "GitHub" section, holding credentials) and the database
+/// connection string (<c>ConnectionStrings:Postgres</c>) aren't part of the "AppSettings"
+/// section in the JSON, and each already has a clear, single place it's consumed.
+/// <c>DuplicateCommentOptions</c> is consumed inside Infrastructure
+/// (<c>GitHubCommentDuplicateNotifier</c>), but it's still mapped here rather than bound
+/// directly in Infrastructure's own DI — Infrastructure can't reference this Api-layer type, so
+/// Api derives <c>IOptions&lt;DuplicateCommentOptions&gt;</c> from this instance and registers
+/// it before Infrastructure's own registration runs (see <see cref="MiddlewareExtension"/>).
 /// </remarks>
 public sealed class AppSettings
 {
@@ -24,4 +30,6 @@ public sealed class AppSettings
     public string[] CorsAllowedOrigins { get; set; } = [];
 
     public DuplicateDetectionOptions DuplicateDetection { get; set; } = new();
+
+    public DuplicateCommentOptions DuplicateComment { get; set; } = new();
 }
