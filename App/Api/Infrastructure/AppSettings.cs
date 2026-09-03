@@ -32,4 +32,6 @@ public sealed class AppSettings
     public DuplicateDetectionOptions DuplicateDetection { get; set; } = new();
 
     public DuplicateCommentOptions DuplicateComment { get; set; } = new();
+
+    public WebhookOptions Webhook { get; set; } = new();
 }

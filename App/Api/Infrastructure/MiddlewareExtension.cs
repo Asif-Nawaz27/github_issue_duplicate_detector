@@ -85,6 +85,7 @@ namespace IssueSense.Api.Infrastructure
             services.AddScoped<IEmbeddingGenerationService, EmbeddingGenerationService>();
             services.AddScoped<IDuplicateDetectionService, DuplicateDetectionService>();
             services.AddScoped<IGitHubIssueWebhookHandler, GitHubIssueWebhookHandler>();
+            services.AddScoped<IGitHubWebhookService, GitHubWebhookService>();
             services.AddScoped<IOwnerService, OwnerService>();
             services.AddScoped<IRepositoryLookupService, RepositoryLookupService>();
 
