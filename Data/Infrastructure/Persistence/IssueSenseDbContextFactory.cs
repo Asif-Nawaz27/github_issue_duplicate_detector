@@ -14,7 +14,7 @@ public sealed class IssueSenseDbContextFactory : IDesignTimeDbContextFactory<Iss
     {
         var connectionString =
             Environment.GetEnvironmentVariable("ConnectionStrings__Postgres")
-            ?? "Host=127.0.0.1;Port=5433;Database=IssueSense;Username=postgres;Password=admin";
+            ?? string.Empty;
 
         var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
         dataSourceBuilder.UseVector();
