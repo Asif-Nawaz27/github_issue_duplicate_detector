@@ -31,8 +31,6 @@ namespace IssueSense.Api.Infrastructure
             services.AddOpenApi();
 
             // Read the "AppSettings" section from configuration exactly once; everything below
-            // that needs a value from it (CORS, DuplicateDetectionOptions) uses this object, not
-            // another configuration.GetSection(...) call of its own.
             var appSettings = configuration.GetSection(AppSettings.SectionName).Get<AppSettings>() ?? new AppSettings();
             services.AddSingleton(appSettings);
             services.AddSingleton(Options.Create(appSettings));
@@ -43,7 +41,7 @@ namespace IssueSense.Api.Infrastructure
 
             services.AddExceptionHandler<GlobalExceptionHandler>();
             services.AddProblemDetails();
-
+ 
             return services;
         }
 
@@ -52,9 +50,7 @@ namespace IssueSense.Api.Infrastructure
         {
             app.UseExceptionHandler();
 
-            // Applying migrations on startup is a local-dev convenience so `dotnet run` against a
-            // fresh docker-compose Postgres just works; a real deployment would run migrations
-            // as an explicit release step instead.
+            
             if (app.Environment.IsDevelopment())
             {
                 using var scope = app.Services.CreateScope();
@@ -68,8 +64,6 @@ namespace IssueSense.Api.Infrastructure
             app.UseHttpsRedirection();
 
             // Same constant used to register (AddCorsPolicy) and apply the policy — registering
-            // one name and applying another is a silent no-op, not an error, so keeping this in
-            // one place instead of a second copy in Program.cs is what actually prevents that.
             app.UseCors(WebDashboardCorsPolicy);
 
             app.UseAuthorization();
