@@ -318,7 +318,6 @@ button.secondary:not(:disabled):hover {
 .actions-grid-dashboard {
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   align-items: stretch;
-  max-width: 860px;
 }
 
 .actions-grid-dashboard .action-card {
