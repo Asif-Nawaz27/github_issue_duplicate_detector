@@ -113,6 +113,26 @@ export function LayoutGridIcon({ className }: IconProps) {
   )
 }
 
+export function FileTextIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={className}>
+      <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5z" />
+      <path d="M14 3v5h5" />
+      <path d="M8.5 13h7M8.5 16.5h7M8.5 9.5h2" />
+    </svg>
+  )
+}
+
+export function ListChecksIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={className}>
+      <path d="M4 6.5h4M4 12h4M4 17.5h4" />
+      <path d="M12 6.5h8M12 17.5h8" />
+      <path d="M11 12l1.8 1.8L16 10.4" />
+    </svg>
+  )
+}
+
 export function ExternalLinkIcon({ className }: IconProps) {
   return (
     <svg {...base} width={13} height={13} className={className}>

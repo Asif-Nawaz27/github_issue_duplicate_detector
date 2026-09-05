@@ -6,17 +6,36 @@
   flex-direction: column;
   gap: 1.5rem;
   text-align: left;
+  animation: page-in 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ---------- Top bar ---------- */
 
 .topbar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0.5rem 0.25rem 1rem;
+  margin: 0 -1.5rem;
+  padding: 1rem 1.5rem;
   border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg) 78%, transparent);
+  backdrop-filter: blur(14px) saturate(1.4);
+  -webkit-backdrop-filter: blur(14px) saturate(1.4);
   flex-wrap: wrap;
 }
 
@@ -38,6 +57,12 @@
   font-size: 0.85rem;
   letter-spacing: 0.02em;
   box-shadow: var(--shadow-sm);
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease;
+}
+
+.brand:hover .brand-mark {
+  transform: rotate(-6deg) scale(1.06);
+  box-shadow: var(--shadow-md), 0 0 0 6px var(--accent-soft);
 }
 
 .brand-text {
@@ -112,6 +137,19 @@
   font-weight: 600;
   font-size: 0.85rem;
   box-shadow: none;
+  transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+}
+
+.nav-tab svg {
+  transition: transform 0.2s ease;
+}
+
+.nav-tab-active svg {
+  transform: scale(1.08);
+}
+
+.nav-tab:not(:disabled):active {
+  transform: scale(0.97);
 }
 
 .nav-tab:not(:disabled):hover {
@@ -136,11 +174,61 @@
   border-radius: var(--radius-lg);
   padding: 1.35rem 1.5rem;
   box-shadow: var(--shadow-sm);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  border-color: var(--border-strong);
 }
 
 .card h2 {
   margin: 0 0 0.75rem;
   font-size: 1.05rem;
+}
+
+.card-title {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.card-title svg {
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+/* ---------- Empty states ---------- */
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.7rem;
+  padding: 2.75rem 1rem;
+  text-align: center;
+  color: var(--muted);
+  min-height: 180px;
+}
+
+.empty-state p {
+  margin: 0;
+  max-width: 32ch;
+  font-size: 0.88rem;
+}
+
+.empty-state svg {
+  width: 30px;
+  height: 30px;
+  color: var(--muted-2);
+}
+
+.spinner.spinner-lg {
+  width: 24px;
+  height: 24px;
+  border-width: 3px;
+  border-color: var(--border);
+  border-top-color: var(--accent);
 }
 
 .toolbar-card-head {
@@ -239,7 +327,7 @@ button {
   padding: 0.6rem 1.15rem;
   border-radius: var(--radius-sm);
   border: none;
-  background: var(--accent);
+  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
   color: var(--accent-fg);
   cursor: pointer;
   display: inline-flex;
@@ -247,7 +335,7 @@ button {
   justify-content: center;
   gap: 0.4rem;
   box-shadow: var(--shadow-xs);
-  transition: filter 0.12s ease, transform 0.12s ease, box-shadow 0.12s ease;
+  transition: filter 0.15s ease, transform 0.12s ease, box-shadow 0.15s ease;
 }
 
 button:disabled {
@@ -257,12 +345,15 @@ button:disabled {
 }
 
 button:not(:disabled):hover {
-  filter: brightness(1.08);
-  box-shadow: var(--shadow-sm);
+  filter: brightness(1.08) saturate(1.08);
+  box-shadow: var(--shadow-md), 0 0 0 4px var(--accent-soft);
+  transform: translateY(-1px);
 }
 
 button:not(:disabled):active {
   transform: translateY(1px);
+  filter: brightness(1.02);
+  box-shadow: var(--shadow-xs);
 }
 
 button.secondary {
@@ -276,6 +367,8 @@ button.secondary:not(:disabled):hover {
   filter: none;
   background: var(--input-bg);
   border-color: var(--border-strong);
+  box-shadow: var(--shadow-xs);
+  transform: none;
 }
 
 .spinner {
@@ -332,7 +425,7 @@ button.secondary:not(:disabled):hover {
 .action-card {
   position: relative;
   overflow: hidden;
-  transition: box-shadow 0.15s ease, transform 0.15s ease;
+  transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
 }
 
 .action-card::before {
@@ -342,11 +435,13 @@ button.secondary:not(:disabled):hover {
   left: 0;
   right: 0;
   height: 3px;
-  background: var(--tone, var(--accent));
+  background: linear-gradient(90deg, var(--tone, var(--accent)), color-mix(in srgb, var(--tone, var(--accent)) 55%, white));
 }
 
 .action-card:hover {
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--tone, var(--accent)) 35%, var(--border));
 }
 
 .action-card-import {
@@ -381,10 +476,21 @@ button.secondary:not(:disabled):hover {
   border-radius: 10px;
   background: color-mix(in srgb, var(--tone) 14%, transparent);
   color: var(--tone);
+  box-shadow: 0 0 0 5px color-mix(in srgb, var(--tone) 7%, transparent);
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+}
+
+.action-card:hover .action-icon {
+  transform: scale(1.08) rotate(-4deg);
+  box-shadow: 0 0 0 7px color-mix(in srgb, var(--tone) 10%, transparent);
 }
 
 .action-card button {
-  background: var(--tone, var(--accent));
+  background: linear-gradient(135deg, var(--tone, var(--accent)), color-mix(in srgb, var(--tone, var(--accent)) 70%, black));
+}
+
+.action-card button:not(:disabled):hover {
+  box-shadow: var(--shadow-md), 0 0 0 4px color-mix(in srgb, var(--tone, var(--accent)) 20%, transparent);
 }
 
 .action-card .result {
@@ -422,6 +528,12 @@ button.secondary:not(:disabled):hover {
   border-radius: var(--radius-sm);
   background: var(--input-bg);
   border: 1px solid var(--border);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.stat-tile:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
 }
 
 .stat-value {
@@ -618,10 +730,12 @@ button.secondary:not(:disabled):hover {
   gap: 0.7rem;
   padding: 0.6rem 0.4rem;
   border-radius: var(--radius-sm);
+  transition: background 0.15s ease, transform 0.15s ease;
 }
 
 .activity-item:hover {
   background: var(--input-bg);
+  transform: translateX(3px);
 }
 
 .activity-icon {
@@ -732,6 +846,7 @@ button.secondary:not(:disabled):hover {
   border-radius: 12px;
   background: color-mix(in srgb, #0891b2 14%, transparent);
   color: #0891b2;
+  box-shadow: 0 0 0 6px color-mix(in srgb, #0891b2 7%, transparent);
 }
 
 .action-icon-lg svg {
@@ -747,9 +862,13 @@ button.secondary:not(:disabled):hover {
 }
 
 .check-form-card button {
-  background: #0891b2;
+  background: linear-gradient(135deg, #0891b2, #0e7490);
   width: 100%;
   margin-top: 0.2rem;
+}
+
+.check-form-card button:not(:disabled):hover {
+  box-shadow: var(--shadow-md), 0 0 0 4px color-mix(in srgb, #0891b2 20%, transparent);
 }
 
 .check-results-card {
@@ -806,6 +925,17 @@ button.secondary:not(:disabled):hover {
   color: var(--accent);
 }
 
+@keyframes combobox-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 .combobox-panel {
   position: absolute;
   top: calc(100% + 0.3rem);
@@ -818,6 +948,8 @@ button.secondary:not(:disabled):hover {
   box-shadow: var(--shadow-lg);
   max-height: 220px;
   overflow-y: auto;
+  transform-origin: top center;
+  animation: combobox-in 0.15s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .combobox-list {
@@ -844,6 +976,8 @@ button.secondary:not(:disabled):hover {
 .combobox-option:hover {
   background: var(--input-bg);
   filter: none;
+  box-shadow: none;
+  transform: none;
 }
 
 .combobox-option-selected {
@@ -863,6 +997,26 @@ button.secondary:not(:disabled):hover {
 
 /* ---------- Modal ---------- */
 
+@keyframes overlay-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -873,9 +1027,11 @@ button.secondary:not(:disabled):hover {
   justify-content: center;
   z-index: 100;
   padding: 1rem;
+  animation: overlay-in 0.15s ease;
 }
 
 .modal {
+  animation: modal-in 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   background: var(--card-bg);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
