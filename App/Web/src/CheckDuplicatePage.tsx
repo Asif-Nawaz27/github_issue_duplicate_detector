@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { checkDuplicate } from './api'
-import { AlertCircleIcon, ExternalLinkIcon, SearchIcon } from './icons'
+import { AlertCircleIcon, ExternalLinkIcon, FileTextIcon, ListChecksIcon, SearchIcon } from './icons'
 import type { ActionKind, AsyncState, CheckDuplicateResponse } from './types'
 
 export function CheckDuplicatePage(props: {
@@ -37,7 +37,10 @@ export function CheckDuplicatePage(props: {
 
       <div className="check-page-grid">
         <section className="card check-form-card">
-          <h2>Candidate issue</h2>
+          <h2 className="card-title">
+            <FileTextIcon />
+            Candidate issue
+          </h2>
           <div className="field-column">
             <label>
               Title
@@ -71,12 +74,28 @@ export function CheckDuplicatePage(props: {
         </section>
 
         <section className="card check-results-card">
-          <h2>Result</h2>
+          <h2 className="card-title">
+            <ListChecksIcon />
+            Result
+          </h2>
           {checkState.status === 'idle' && (
-            <p className="hint">Fill in a title and run the check — candidates will show up here.</p>
+            <div className="empty-state">
+              <SearchIcon />
+              <p>Fill in a title and run the check — candidates will show up here.</p>
+            </div>
           )}
-          {checkState.status === 'loading' && <p className="hint">Comparing against imported issues…</p>}
-          {checkState.status === 'error' && <p className="hint">The last check failed — see the error on the left.</p>}
+          {checkState.status === 'loading' && (
+            <div className="empty-state">
+              <span className="spinner spinner-lg" />
+              <p>Comparing against imported issues…</p>
+            </div>
+          )}
+          {checkState.status === 'error' && (
+            <div className="empty-state">
+              <AlertCircleIcon />
+              <p>The last check failed — see the error on the left.</p>
+            </div>
+          )}
           {checkState.status === 'success' && <CheckResult data={checkState.data} />}
         </section>
       </div>
